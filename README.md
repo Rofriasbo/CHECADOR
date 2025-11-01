@@ -1,6 +1,4 @@
 # CHECADOR
-Aquí tienes un archivo `README.md` que explica para qué sirve cada una de esas dependencias en el contexto de tu proyecto de gestión escolar.
-
 ---
 
 # Proyecto de Gestión de Asistencia Escolar
