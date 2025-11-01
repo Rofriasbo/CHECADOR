@@ -1,23 +1,20 @@
-import 'package:sqflite/sqflite.dart';
+import 'package.sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-// Importa los modelos
 import 'materia.dart';
 import 'profesor.dart';
-import 'horario.dart'; // Asegúrate que este archivo tenga el método 'toMap()' y el campo 'dia'
-import 'asistencia.dart'; // Asegúrate que este archivo tenga el método 'toMap()'
+import 'horario.dart';
+import 'asistencia.dart';
 
 class DBAsistencia {
   static Future<Database> _conectarDB() async {
     return openDatabase(
       join(await getDatabasesPath(), "asistencia_escolar.db"),
-      version: 1, // Si has cambiado la estructura, desinstala la app o incrementa la versión.
+      version: 1,
       onConfigure: (db) async {
-        // Habilitar llaves foráneas
         await db.execute("PRAGMA foreign_keys = ON");
       },
       onCreate: (db, version) async {
-        // Crear tabla MATERIA
         await db.execute('''
           CREATE TABLE MATERIA(
             NMAT TEXT PRIMARY KEY,
@@ -25,7 +22,6 @@ class DBAsistencia {
           )
         ''');
 
-        // Crear tabla PROFESOR
         await db.execute('''
           CREATE TABLE PROFESOR(
             NPROFESOR TEXT PRIMARY KEY,
@@ -34,13 +30,12 @@ class DBAsistencia {
           )
         ''');
 
-        // Crear tabla HORARIO (CON LA COLUMNA 'DIA')
         await db.execute('''
           CREATE TABLE HORARIO(
             NHORARIO INTEGER PRIMARY KEY AUTOINCREMENT,
             NPROFESOR TEXT NOT NULL,
             NMAT TEXT NOT NULL,
-            DIA TEXT NOT NULL,        -- <-- CAMBIO APLICADO
+            DIA TEXT NOT NULL,
             HORA TEXT NOT NULL,
             EDIFICIO TEXT NOT NULL,
             SALON TEXT NOT NULL,
@@ -51,7 +46,6 @@ class DBAsistencia {
           )
         ''');
 
-        // Crear tabla ASISTENCIA
         await db.execute('''
           CREATE TABLE ASISTENCIA(
             IDASISTENCIA INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,16 +60,15 @@ class DBAsistencia {
     );
   }
 
-  // --- CRUD MATERIA (Corregido a .toMap) ---
   static Future<int> insertarMateria(Materia m) async {
     Database db = await _conectarDB();
-    return db.insert("MATERIA", m.toMap(), // <-- CORREGIDO
+    return db.insert("MATERIA", m.toMap(),
         conflictAlgorithm: ConflictAlgorithm.fail);
   }
 
   static Future<int> actualizarMateria(Materia m) async {
     Database db = await _conectarDB();
-    return db.update("MATERIA", m.toMap(), // <-- CORREGIDO
+    return db.update("MATERIA", m.toMap(),
         where: "NMAT=?", whereArgs: [m.nmat]);
   }
 
@@ -87,21 +80,18 @@ class DBAsistencia {
   static Future<List<Materia>> mostrarMaterias() async {
     Database db = await _conectarDB();
     List<Map<String, dynamic>> datos = await db.query("MATERIA");
-    // Asumimos que tu modelo Materia tiene 'fromMap'
-    // Si usaste mi código anterior, 'fromMap' es el nombre correcto
     return datos.map((map) => Materia.fromMap(map)).toList();
   }
 
-  // --- CRUD PROFESOR (Corregido a .toMap) ---
   static Future<int> insertarProfesor(Profesor p) async {
     Database db = await _conectarDB();
-    return db.insert("PROFESOR", p.toMap(), // <-- CORREGIDO
+    return db.insert("PROFESOR", p.toMap(),
         conflictAlgorithm: ConflictAlgorithm.fail);
   }
 
   static Future<int> actualizarProfesor(Profesor p) async {
     Database db = await _conectarDB();
-    return db.update("PROFESOR", p.toMap(), // <-- CORREGIDO
+    return db.update("PROFESOR", p.toMap(),
         where: "NPROFESOR=?", whereArgs: [p.nprofesor]);
   }
 
@@ -113,20 +103,18 @@ class DBAsistencia {
   static Future<List<Profesor>> mostrarProfesores() async {
     Database db = await _conectarDB();
     List<Map<String, dynamic>> datos = await db.query("PROFESOR");
-    // Asumimos que tu modelo Profesor tiene 'fromMap'
     return datos.map((map) => Profesor.fromMap(map)).toList();
   }
 
-  // --- CRUD HORARIO (Corregido a .toMap y con 'dia') ---
   static Future<int> insertarHorario(Horario h) async {
     Database db = await _conectarDB();
-    return db.insert("HORARIO", h.toMap(), // <-- CORREGIDO
+    return db.insert("HORARIO", h.toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   static Future<int> actualizarHorario(Horario h) async {
     Database db = await _conectarDB();
-    return db.update("HORARIO", h.toMap(), // <-- CORREGIDO
+    return db.update("HORARIO", h.toMap(),
         where: "NHORARIO=?", whereArgs: [h.nhorario]);
   }
 
@@ -138,24 +126,22 @@ class DBAsistencia {
   static Future<List<Horario>> mostrarHorarios() async {
     Database db = await _conectarDB();
     List<Map<String, dynamic>> datos = await db.query("HORARIO");
-    // Usamos el 'fromMap' que ya debe incluir 'dia'
     return datos.map((map) => Horario.fromMap(map)).toList();
   }
 
-  // --- CRUD ASISTENCIA (Corregido a .toMap) ---
   static Future<int> insertarAsistencia(Asistencia a) async {
     Database db = await _conectarDB();
-    return db.insert("ASISTENCIA", a.toMap(), // <-- CORREGIDO
+    return db.insert("ASISTENCIA", a.toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   static Future<int> actualizarAsistencia(Asistencia a) async {
     Database db = await _conectarDB();
-    return db.update("ASISTENCIA", a.toMap(), // <-- CORREGIDO
+    return db.update("ASISTENCIA", a.toMap(),
         where: "IDASISTENCIA=?", whereArgs: [a.idasistencia]);
   }
 
-  static Future<int> eliminarAsistencia(int idasistencia) async {
+static Future<int> eliminarAsistencia(int idasistencia) async {
     Database db = await _conectarDB();
     return db.delete("ASISTENCIA",
         where: "IDASISTENCIA=?", whereArgs: [idasistencia]);
@@ -164,18 +150,15 @@ class DBAsistencia {
   static Future<List<Asistencia>> mostrarAsistencias() async {
     Database db = await _conectarDB();
     List<Map<String, dynamic>> datos = await db.query("ASISTENCIA");
-    // Asumimos que tu modelo Asistencia tiene 'fromMap'
     return datos.map((map) => Asistencia.fromMap(map)).toList();
   }
-
-  // --- CONSULTAS CON JOIN (CON LA COLUMNA 'DIA') ---
 
   static Future<List<Map<String, dynamic>>> mostrarAsistenciasDetalladas() async {
     Database db = await _conectarDB();
     return db.rawQuery('''
       SELECT 
         A.IDASISTENCIA, A.FECHA, A.ASISTENCIA,
-        H.HORA, H.SALON, H.EDIFICIO, H.DIA, -- <-- CAMBIO APLICADO
+        H.HORA, H.SALON, H.EDIFICIO, H.DIA,
         M.DESCRIPCION AS MATERIA,
         P.NOMBRE AS PROFESOR
       FROM ASISTENCIA AS A
@@ -190,7 +173,7 @@ class DBAsistencia {
     Database db = await _conectarDB();
     return db.rawQuery('''
       SELECT 
-        H.NHORARIO, H.HORA, H.SALON, H.EDIFICIO, H.DIA, -- <-- CAMBIO APLICADO
+        H.NHORARIO, H.HORA, H.SALON, H.EDIFICIO, H.DIA,
         M.DESCRIPCION AS MATERIA,
         P.NOMBRE AS PROFESOR
       FROM HORARIO AS H
@@ -204,7 +187,7 @@ class DBAsistencia {
     Database db = await _conectarDB();
     return db.rawQuery('''
       SELECT 
-        H.NHORARIO, H.HORA, H.SALON, H.EDIFICIO, H.DIA, -- <-- CAMBIO APLICADO
+        H.NHORARIO, H.HORA, H.SALON, H.EDIFICIO, H.DIA,
         M.DESCRIPCION AS MATERIA,
         P.NOMBRE AS PROFESOR
       FROM HORARIO AS H
