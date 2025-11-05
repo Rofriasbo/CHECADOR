@@ -54,7 +54,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   // +++ CAMBIOS RODOLFO +++
   // Variables de estado para Asistencias
   String? _selectedProfesorAsistencia;
-  Map<int, bool> _asistenciasMarcadas = {};
+  final Map<int, bool> _asistenciasMarcadas = {};
 
   // +++ CAMBIOS RODOLFO +++
   // VARIABLES PARA CONSULTAS (Por Edificio)
@@ -68,17 +68,27 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
   // +++ CAMBIOS RODOLFO +++
   // Regex para parsear "HH:MM a HH:MM"
-  final RegExp _horaRegExp =
-  RegExp(r'^([0-9]+):([0-9]+) a ([0-9]+):([0-9]+)$');
+  final RegExp _horaRegExp = RegExp(r'^([0-9]+):([0-9]+) a ([0-9]+):([0-9]+)$');
 
   // +++ CAMBIOS RODOLFO +++
   // Listas de salones
   final List<String> _diasSemana = [
-    'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado'
   ];
   final List<String> _salonesUD = List.generate(11, (i) => 'UD${i + 1}');
   final List<String> _salonesLABC = [
-    'LABCSA', 'LABCSB', 'LABCSC', 'CSC1', 'CSC2', 'TDM', 'TBD'
+    'LABCSA',
+    'LABCSB',
+    'LABCSC',
+    'CSC1',
+    'CSC2',
+    'TDM',
+    'TBD'
   ];
   final List<String> _salonesCB = List.generate(10, (i) => 'CB${i + 1}');
 
@@ -107,6 +117,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  // #region Métodos de Carga y Limpieza
   // +++ CAMBIOS RODOLFO +++
   void _cargarDatos() async {
     _cargarProfesores();
@@ -148,7 +159,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       // +++ FIN CAMBIOS MURGO +++
     });
   }
+  // #endregion
 
+  // #region MÉTODOS CRUD PROFESOR
   // --- MÉTODOS CRUD PROFESOR (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   void _cargarProfesores() async {
@@ -167,7 +180,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       return;
     }
     final String nProfesorGenerado =
-    DateTime.now().millisecondsSinceEpoch.toString();
+        DateTime.now().millisecondsSinceEpoch.toString();
 
     final profesor = Profesor(
       nprofesor: nProfesorGenerado,
@@ -215,10 +228,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _limpiarControladores();
     _cargarProfesores();
     _cargarDatosConsulta();
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
     _mostrarSnackBar("Profesor actualizado");
   }
+  // #endregion
 
+  // #region MÉTODOS CRUD MATERIA
   // --- MÉTODOS CRUD MATERIA (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   void _cargarMaterias() async {
@@ -281,17 +296,19 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _limpiarControladores();
     _cargarMaterias();
     _cargarDatosConsulta();
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
     _mostrarSnackBar("Materia actualizada");
   }
+  // #endregion
 
+  // #region MÉTODOS CRUD HORARIO
   // --- MÉTODOS CRUD HORARIO (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   Future<void> _seleccionarRangoHora(
       BuildContext context, Function(VoidCallback) updateState) async {
     final TimeOfDay? inicio = await showTimePicker(
       context: context,
-      initialTime: _selectedHoraInicio ?? TimeOfDay(hour: 7, minute: 0),
+      initialTime: _selectedHoraInicio ?? const TimeOfDay(hour: 7, minute: 0),
       helpText: "SELECCIONAR HORA DE INICIO",
     );
 
@@ -316,7 +333,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       _selectedHoraFin = fin;
       String pad(int n) => n.toString().padLeft(2, '0');
       horaCtrl.text =
-      "${pad(inicio.hour)}:${pad(inicio.minute)} a ${pad(fin.hour)}:${pad(fin.minute)}";
+          "${pad(inicio.hour)}:${pad(inicio.minute)} a ${pad(fin.hour)}:${pad(fin.minute)}";
     });
   }
 
@@ -376,9 +393,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         final existMinFin = int.parse(matchesExistente.group(4)!);
 
         final existenteInicio =
-        TimeOfDay(hour: existHoraInicio, minute: existMinInicio);
+            TimeOfDay(hour: existHoraInicio, minute: existMinInicio);
         final existenteFin =
-        TimeOfDay(hour: existHoraFin, minute: existMinFin);
+            TimeOfDay(hour: existHoraFin, minute: existMinFin);
 
         final existIniVal = _timeToDouble(existenteInicio);
         final existFinVal = _timeToDouble(existenteFin);
@@ -490,7 +507,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
     _mostrarDialogo(
       "Actualizar Horario",
-      _buildFormularioHorario(actualizando: true),
+      _buildFormularioHorario(actualizando: true), // Se llama sin el parámetro nhorario
       onGuardar: () => _actualizarHorario(horario.nhorario!),
     );
   }
@@ -529,13 +546,15 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       _limpiarControladores();
       _cargarHorarios();
       _cargarDatosConsulta();
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
       _mostrarSnackBar("Horario actualizado");
     } catch (e) {
       _mostrarSnackBar("Error al actualizar en la base de datos: $e");
     }
   }
+  // #endregion
 
+  // #region MÉTODOS CRUD ASISTENCIA
   // --- MÉTODOS CRUD ASISTENCIA (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   Future<void> _cargarAsistencias() async {
@@ -562,7 +581,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
     final Set<int> nHorariosDeHoy = _horarios
         .where((h) =>
-    h.nprofesor == _selectedProfesorAsistencia && h.dia == diaActual)
+            h.nprofesor == _selectedProfesorAsistencia && h.dia == diaActual)
         .map((h) => h.nhorario!)
         .toSet();
 
@@ -635,10 +654,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _limpiarControladores();
     _cargarAsistencias();
     _cargarDatosConsulta();
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
     _mostrarSnackBar("Asistencia actualizada");
   }
+  // #endregion
 
+  // #region MÉTODOS DE CONSULTA
   // --- MÉTODOS DE CONSULTA (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   void _cargarDatosConsulta() async {
@@ -651,7 +672,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       });
     }
   }
+  // #endregion
 
+  // #region MÉTODOS DE UI
   // --- MÉTODOS DE UI (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   void _mostrarSnackBar(String message) {
@@ -671,7 +694,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         // (Modo Oscuro: Fondo gris oscuro, Título blanco)
         return AlertDialog(
           backgroundColor:
-          colorsw ? Colors.grey[800] : Colors.orange.shade50,
+              colorsw ? Colors.grey[800] : Colors.orange.shade50,
           title: Text(title,
               style: TextStyle(
                   color: colorsw ? Colors.white : Colors.brown)),
@@ -681,12 +704,14 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               brightness: colorsw ? Brightness.dark : Brightness.light,
               // Estilo para el texto DENTRO del Dropdown
               textTheme: Theme.of(context).textTheme.copyWith(
-                titleMedium: TextStyle(color: colorsw ? Colors.white : Colors.black),
-              ),
+                    titleMedium:
+                        TextStyle(color: colorsw ? Colors.white : Colors.black),
+                  ),
               inputDecorationTheme: InputDecorationTheme(
-                labelStyle: TextStyle(
-                    color: colorsw ? Colors.white70 : Colors.brown[700]),
-                hintStyle: TextStyle(color: colorsw ? Colors.white54 : Colors.black54),
+                labelStyle:
+                    TextStyle(color: colorsw ? Colors.white70 : Colors.brown[700]),
+                hintStyle:
+                    TextStyle(color: colorsw ? Colors.white54 : Colors.black54),
               ),
               listTileTheme: ListTileThemeData(
                 textColor: colorsw ? Colors.white : Colors.black,
@@ -698,16 +723,16 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           actions: [
             TextButton(
               child:
-              Text("Cancelar", style: TextStyle(color: Colors.deepOrange)),
+                  const Text("Cancelar", style: TextStyle(color: Colors.deepOrange)),
               onPressed: () {
                 _limpiarControladores();
-                Navigator.pop(context);
+                if (mounted) Navigator.pop(context);
               },
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrangeAccent),
-              child: Text("Guardar"),
+              child: const Text("Guardar"),
               onPressed: onGuardar,
             ),
           ],
@@ -716,7 +741,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       },
     );
   }
+  // #endregion
 
+  // #region BUILDERS DE FORMULARIOS
   // --- BUILDERS DE FORMULARIOS (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   Widget _buildFormularioProfesor({bool actualizando = false}) {
@@ -727,13 +754,13 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           TextField(
               controller: nprofesorCtrl,
               readOnly: true,
-              decoration: InputDecoration(labelText: "N° Profesor (PK)")),
+              decoration: const InputDecoration(labelText: "N° Profesor (PK)")),
         TextField(
             controller: nombreCtrl,
-            decoration: InputDecoration(labelText: "Nombre")),
+            decoration: const InputDecoration(labelText: "Nombre")),
         TextField(
             controller: carreraCtrl,
-            decoration: InputDecoration(labelText: "Carrera")),
+            decoration: const InputDecoration(labelText: "Carrera")),
       ],
     );
   }
@@ -747,10 +774,10 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           TextField(
               controller: nmatCtrl,
               readOnly: true,
-              decoration: InputDecoration(labelText: "N° Materia (PK)")),
+              decoration: const InputDecoration(labelText: "N° Materia (PK)")),
         TextField(
             controller: descripcionCtrl,
-            decoration: InputDecoration(labelText: "Descripción")),
+            decoration: const InputDecoration(labelText: "Descripción")),
       ],
     );
   }
@@ -789,7 +816,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       children: [
         DropdownButtonFormField<String>(
           value: _selectedNProfesor,
-          hint: Text("Seleccione un Profesor"),
+          hint: const Text("Seleccione un Profesor"),
           isExpanded: true,
           // +++ CAMBIOS MURGO (Contraste) +++
           style: TextStyle(color: colorsw ? Colors.white : Colors.black),
@@ -805,12 +832,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               _selectedNProfesor = value;
             });
           },
-          decoration: InputDecoration(labelText: "Profesor"),
+          decoration: const InputDecoration(labelText: "Profesor"),
           validator: (value) => value == null ? 'Campo requerido' : null,
         ),
         DropdownButtonFormField<String>(
           value: _selectedNMat,
-          hint: Text("Seleccione una Materia"),
+          hint: const Text("Seleccione una Materia"),
           isExpanded: true,
           // +++ CAMBIOS MURGO (Contraste) +++
           style: TextStyle(color: colorsw ? Colors.white : Colors.black),
@@ -826,12 +853,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               _selectedNMat = value;
             });
           },
-          decoration: InputDecoration(labelText: "Materia"),
+          decoration: const InputDecoration(labelText: "Materia"),
           validator: (value) => value == null ? 'Campo requerido' : null,
         ),
         DropdownButtonFormField<String>(
           value: _selectedDia,
-          hint: Text("Seleccione un Día"),
+          hint: const Text("Seleccione un Día"),
           // +++ CAMBIOS MURGO (Contraste) +++
           style: TextStyle(color: colorsw ? Colors.white : Colors.black),
           // +++ FIN CAMBIOS MURGO +++
@@ -846,7 +873,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               _selectedDia = value;
             });
           },
-          decoration: InputDecoration(labelText: "Día de la semana"),
+          decoration: const InputDecoration(labelText: "Día de la semana"),
           validator: (value) => value == null ? 'Campo requerido' : null,
         ),
         ListTile(
@@ -854,7 +881,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           // +++ CAMBIOS MURGO (Contraste) +++
           leading: Icon(Icons.access_time,
               color: colorsw ? Colors.white70 : Colors.brown.shade700),
-          title: Text("Rango de Hora"),
+          title: const Text("Rango de Hora"),
           subtitle: Text(
             _getHoraRangoTexto(),
             style: TextStyle(
@@ -871,7 +898,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         Divider(color: Colors.grey.shade700, height: 1),
         DropdownButtonFormField<String>(
           value: _selectedEdificio,
-          hint: Text("Seleccione un Edificio"),
+          hint: const Text("Seleccione un Edificio"),
           // +++ CAMBIOS MURGO (Contraste) +++
           style: TextStyle(color: colorsw ? Colors.white : Colors.black),
           // +++ FIN CAMBIOS MURGO +++
@@ -882,7 +909,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
             );
           }).toList(),
           onChanged: _onEdificioChanged,
-          decoration: InputDecoration(labelText: "Edificio"),
+          decoration: const InputDecoration(labelText: "Edificio"),
           validator: (value) => value == null ? 'Campo requerido' : null,
         ),
         DropdownButtonFormField<String>(
@@ -903,11 +930,11 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           onChanged: _salonesDisponibles.isEmpty
               ? null
               : (value) {
-            updateState(() {
-              _selectedSalon = value;
-            });
-          },
-          decoration: InputDecoration(labelText: "Salón"),
+                  updateState(() {
+                    _selectedSalon = value;
+                  });
+                },
+          decoration: const InputDecoration(labelText: "Salón"),
           validator: (value) => value == null ? 'Campo requerido' : null,
         ),
       ],
@@ -915,7 +942,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   }
 
   // +++ CAMBIOS RODOLFO +++
-  // (Corrección de layout)
+  // (Corrección de layout - Método corregido: Se removió el parámetro nhorario)
   Widget _buildFormularioHorario({bool actualizando = false}) {
     if (actualizando) {
       return StatefulBuilder(
@@ -938,13 +965,13 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         TextField(
             controller: nhorarioAsistenciaCtrl,
             readOnly: true,
-            decoration: InputDecoration(labelText: "N° Horario (FK)")),
+            decoration: const InputDecoration(labelText: "N° Horario (FK)")),
         TextField(
             controller: fechaCtrl,
             readOnly: true,
-            decoration: InputDecoration(labelText: "Fecha de Registro")),
+            decoration: const InputDecoration(labelText: "Fecha de Registro")),
         SwitchListTile(
-          title: Text("Asistió"),
+          title: const Text("Asistió"),
           value: _asistenciaValor,
           onChanged: (val) {
             setDialogState(() {
@@ -955,7 +982,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       ],
     );
   }
+  // #endregion
 
+  // #region BUILDER PRINCIPAL
   // --- BUILDER PRINCIPAL (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   Widget? contenido() {
@@ -990,17 +1019,19 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         displayColor: Colors.white, // Para cabeceras
       ),
       // Estilos para TextFields y Dropdowns
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         labelStyle: TextStyle(color: Colors.white70),
         hintStyle: TextStyle(color: Colors.white54),
         border: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
-        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
-        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
+        enabledBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+        focusedBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
       ),
       // Forzar el color de texto de ListTile
       listTileTheme: ListTileThemeData(
         textColor: Colors.white,
-        subtitleTextStyle: TextStyle(color: Colors.white70), // Subtítulos de listas
+        subtitleTextStyle: const TextStyle(color: Colors.white70), // Subtítulos de listas
       ),
       // Color de los Dropdowns
       canvasColor: Colors.grey[850], // Fondo del menú dropdown
@@ -1008,22 +1039,25 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   }
   // +++ FIN CAMBIOS MURGO +++
 
+  // #region BUILDERS DE PESTAÑAS CRUD
   // --- BUILDERS DE PESTAÑAS (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   Widget _buildProfesoresCRUD() {
     // +++ CAMBIOS MURGO +++
     return Container(
       color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       // Wrapper de Theme para contraste de texto
       child: Theme(
-        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
-          brightness: Brightness.light,
-          inputDecorationTheme: InputDecorationTheme(
-            labelStyle: TextStyle(color: Colors.brown[700]),
-            hintStyle: TextStyle(color: Colors.black54),
-          ),
-        ),
+        data: colorsw
+            ? _getAppDarkTheme()
+            : Theme.of(context).copyWith(
+                brightness: Brightness.light,
+                inputDecorationTheme: InputDecorationTheme(
+                  labelStyle: TextStyle(color: Colors.brown[700]),
+                  hintStyle: const TextStyle(color: Colors.black54),
+                ),
+              ),
         child: SingleChildScrollView(
           // +++ FIN CAMBIOS MURGO +++
           child: Column(
@@ -1036,14 +1070,14 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       color: colorsw ? Colors.white : Colors.brown)),
               // +++ FIN CAMBIOS MURGO +++
               _buildFormularioProfesor(actualizando: false),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent),
                 onPressed: _agregarProfesor,
-                child: Text("Guardar Profesor"),
+                child: const Text("Guardar Profesor"),
               ),
-              Divider(height: 30),
+              const Divider(height: 30),
               // +++ CAMBIOS MURGO (Contraste) +++
               Text("Profesores Registrados",
                   style: TextStyle(
@@ -1053,7 +1087,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               // +++ FIN CAMBIOS MURGO +++
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: _profesores.length,
                 itemBuilder: (context, index) {
                   final profesor = _profesores[index];
@@ -1067,12 +1101,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Colors.blue),
                             onPressed: () =>
                                 _mostrarDialogoActualizarProfesor(profesor),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () =>
                                 _eliminarProfesor(profesor.nprofesor),
                           ),
@@ -1094,16 +1128,18 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     // +++ CAMBIOS MURGO +++
     return Container(
       color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       // Wrapper de Theme para contraste de texto
       child: Theme(
-        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
-          brightness: Brightness.light,
-          inputDecorationTheme: InputDecorationTheme(
-            labelStyle: TextStyle(color: Colors.brown[700]),
-            hintStyle: TextStyle(color: Colors.black54),
-          ),
-        ),
+        data: colorsw
+            ? _getAppDarkTheme()
+            : Theme.of(context).copyWith(
+                brightness: Brightness.light,
+                inputDecorationTheme: InputDecorationTheme(
+                  labelStyle: TextStyle(color: Colors.brown[700]),
+                  hintStyle: const TextStyle(color: Colors.black54),
+                ),
+              ),
         child: SingleChildScrollView(
           // +++ FIN CAMBIOS MURGO +++
           child: Column(
@@ -1116,14 +1152,14 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       color: colorsw ? Colors.white : Colors.brown)),
               // +++ FIN CAMBIOS MURGO +++
               _buildFormularioMateria(actualizando: false),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent),
                 onPressed: _agregarMateria,
-                child: Text("Guardar Materia"),
+                child: const Text("Guardar Materia"),
               ),
-              Divider(height: 30),
+              const Divider(height: 30),
               // +++ CAMBIOS MURGO (Contraste) +++
               Text("Materias Registradas",
                   style: TextStyle(
@@ -1133,7 +1169,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               // +++ FIN CAMBIOS MURGO +++
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: _materias.length,
                 itemBuilder: (context, index) {
                   final materia = _materias[index];
@@ -1146,12 +1182,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Colors.blue),
                             onPressed: () =>
                                 _mostrarDialogoActualizarMateria(materia),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _eliminarMateria(materia.nmat),
                           ),
                         ],
@@ -1172,20 +1208,22 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     // +++ CAMBIOS MURGO +++
     return Container(
       color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       // Wrapper de Theme para contraste de texto
       child: Theme(
-        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
-          brightness: Brightness.light,
-          inputDecorationTheme: InputDecorationTheme(
-            labelStyle: TextStyle(color: Colors.brown[700]),
-            hintStyle: TextStyle(color: Colors.black54),
-          ),
-          listTileTheme: ListTileThemeData(
-            textColor: Colors.black,
-            iconColor: Colors.brown.shade700,
-          ),
-        ),
+        data: colorsw
+            ? _getAppDarkTheme()
+            : Theme.of(context).copyWith(
+                brightness: Brightness.light,
+                inputDecorationTheme: InputDecorationTheme(
+                  labelStyle: TextStyle(color: Colors.brown[700]),
+                  hintStyle: const TextStyle(color: Colors.black54),
+                ),
+                listTileTheme: ListTileThemeData(
+                  textColor: Colors.black,
+                  iconColor: Colors.brown.shade700,
+                ),
+              ),
         child: SingleChildScrollView(
           // +++ FIN CAMBIOS MURGO +++
           child: Column(
@@ -1198,14 +1236,14 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       color: colorsw ? Colors.white : Colors.brown)),
               // +++ FIN CAMBIOS MURGO +++
               _buildFormularioHorario(actualizando: false),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent),
                 onPressed: _agregarHorario,
-                child: Text("Guardar Horario"),
+                child: const Text("Guardar Horario"),
               ),
-              Divider(height: 30),
+              const Divider(height: 30),
               // +++ CAMBIOS MURGO (Contraste) +++
               Text("Horarios Registrados",
                   style: TextStyle(
@@ -1213,7 +1251,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       fontWeight: FontWeight.bold,
                       color: colorsw ? Colors.white : Colors.black87)),
               // +++ FIN CAMBIOS MURGO +++
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildHorarioListaWidget(),
             ],
           ),
@@ -1227,7 +1265,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     final List<Horario> horariosOrdenados = List.from(_horarios);
     horariosOrdenados.sort((a, b) {
       int diaCompare =
-      _getDiaSemanaValor(a.dia).compareTo(_getDiaSemanaValor(b.dia));
+          _getDiaSemanaValor(a.dia).compareTo(_getDiaSemanaValor(b.dia));
       if (diaCompare != 0) {
         return diaCompare;
       }
@@ -1235,22 +1273,23 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     });
 
     if (horariosOrdenados.isEmpty) {
-      return Center(child: Text("No hay horarios registrados."));
+      return const Center(child: Text("No hay horarios registrados."));
     }
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: horariosOrdenados.length,
       itemBuilder: (context, index) {
         final horario = horariosOrdenados[index];
         final profNombre = _profesores
             .firstWhere((p) => p.nprofesor == horario.nprofesor,
-            orElse: () => Profesor(nprofesor: '', nombre: 'N/A', carrera: ''))
+                orElse: () =>
+                    Profesor(nprofesor: '', nombre: 'N/A', carrera: ''))
             .nombre;
         final matDesc = _materias
             .firstWhere((m) => m.nmat == horario.nmat,
-            orElse: () => Materia(nmat: '', descripcion: 'N/A'))
+                orElse: () => Materia(nmat: '', descripcion: 'N/A'))
             .descripcion;
 
         return Card(
@@ -1263,11 +1302,11 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit, color: Colors.blue),
+                  icon: const Icon(Icons.edit, color: Colors.blue),
                   onPressed: () => _mostrarDialogoActualizarHorario(horario),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => _eliminarHorario(horario.nhorario!),
                 ),
               ],
@@ -1293,16 +1332,18 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     // +++ CAMBIOS MURGO +++
     return Container(
       color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       // Wrapper de Theme para contraste de texto
       child: Theme(
-        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
-          brightness: Brightness.light,
-          inputDecorationTheme: InputDecorationTheme(
-            labelStyle: TextStyle(color: Colors.brown[700]),
-            hintStyle: TextStyle(color: Colors.black54),
-          ),
-        ),
+        data: colorsw
+            ? _getAppDarkTheme()
+            : Theme.of(context).copyWith(
+                brightness: Brightness.light,
+                inputDecorationTheme: InputDecorationTheme(
+                  labelStyle: TextStyle(color: Colors.brown[700]),
+                  hintStyle: const TextStyle(color: Colors.black54),
+                ),
+              ),
         child: SingleChildScrollView(
           // +++ FIN CAMBIOS MURGO +++
           child: Column(
@@ -1315,8 +1356,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       color: colorsw ? Colors.white : Colors.brown)),
               // +++ FIN CAMBIOS MURGO +++
               DropdownButtonFormField<String>(
-                initialValue: _selectedProfesorAsistencia,
-                hint: Text("Seleccione un Profesor para firmar"),
+                value: _selectedProfesorAsistencia,
+                hint: const Text("Seleccione un Profesor para firmar"),
                 isExpanded: true,
                 // +++ CAMBIOS MURGO (Contraste) +++
                 style: TextStyle(color: colorsw ? Colors.white : Colors.black),
@@ -1325,7 +1366,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                   return DropdownMenuItem(
                     value: profesor.nprofesor,
                     child:
-                    Text(profesor.nombre, overflow: TextOverflow.ellipsis),
+                        Text(profesor.nombre, overflow: TextOverflow.ellipsis),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -1334,27 +1375,27 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                     _asistenciasMarcadas.clear();
                   });
                 },
-                decoration: InputDecoration(labelText: "Profesor"),
+                decoration: const InputDecoration(labelText: "Profesor"),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               if (_selectedProfesorAsistencia != null)
                 ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: horariosDelProfesor.length,
                   itemBuilder: (context, index) {
                     final horario = horariosDelProfesor[index];
                     final materiaDesc = _materias
                         .firstWhere((m) => m.nmat == horario.nmat,
-                        orElse: () =>
-                            Materia(nmat: '', descripcion: 'N/A'))
+                            orElse: () => Materia(
+                                nmat: '', descripcion: 'N/A'))
                         .descripcion;
 
                     final bool esDiaCorrecto = (horario.dia == diaActual);
 
                     final asistenciaHoy = _asistencias.lastWhere(
-                            (a) =>
-                        a.nhorario == horario.nhorario &&
+                        (a) =>
+                            a.nhorario == horario.nhorario &&
                             a.fecha.startsWith(fechaDeHoy),
                         orElse: () => Asistencia(
                             idasistencia: -1,
@@ -1386,31 +1427,30 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                       value: valorSwitch,
                       onChanged: habilitadoSwitch
                           ? (val) {
-                        setState(() {
-                          _asistenciasMarcadas[horario.nhorario!] = val;
-                        });
-                      }
+                              setState(() {
+                                _asistenciasMarcadas[horario.nhorario!] = val;
+                              });
+                            }
                           : null,
-                      activeColor: habilitadoSwitch
-                          ? Colors.deepOrangeAccent
-                          : Colors.grey,
+                      activeColor:
+                          habilitadoSwitch ? Colors.deepOrangeAccent : Colors.grey,
                       inactiveThumbColor:
-                      habilitadoSwitch ? null : Colors.grey.shade400,
+                          habilitadoSwitch ? null : Colors.grey.shade400,
                       inactiveTrackColor:
-                      habilitadoSwitch ? null : Colors.grey.shade300,
+                          habilitadoSwitch ? null : Colors.grey.shade300,
                     );
                   },
                 ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent),
                 onPressed: _selectedProfesorAsistencia == null
                     ? null
                     : _guardarAsistenciasMarcadas,
-                child: Text("Guardar Firmas"),
+                child: const Text("Guardar Firmas"),
               ),
-              Divider(height: 30),
+              const Divider(height: 30),
               // +++ CAMBIOS MURGO (Contraste) +++
               Text("Asistencias Registradas",
                   style: TextStyle(
@@ -1420,13 +1460,13 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               // +++ FIN CAMBIOS MURGO +++
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: asistenciasOrdenadas.length,
                 itemBuilder: (context, index) {
                   final asistencia = asistenciasOrdenadas[index];
 
                   final horarioAsistencia = _horarios.firstWhere(
-                          (h) => h.nhorario == asistencia.nhorario,
+                      (h) => h.nhorario == asistencia.nhorario,
                       orElse: () => Horario(
                           nprofesor: '',
                           nmat: '',
@@ -1438,8 +1478,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
                   final materiaDesc = _materias
                       .firstWhere((m) => m.nmat == horarioAsistencia.nmat,
-                      orElse: () => Materia(
-                          nmat: '', descripcion: 'Horario borrado'))
+                          orElse: () => Materia(
+                              nmat: '', descripcion: 'Horario borrado'))
                       .descripcion;
 
                   return Card(
@@ -1450,7 +1490,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                             ? Icons.check_circle
                             : Icons.cancel,
                         color:
-                        asistencia.asistencia ? Colors.green : Colors.red,
+                            asistencia.asistencia ? Colors.green : Colors.red,
                       ),
                       title: Text("Materia: $materiaDesc"),
                       subtitle: Text(
@@ -1459,13 +1499,12 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Colors.blue),
                             onPressed: () =>
-                                _mostrarDialogoActualizarAsistencia(
-                                    asistencia),
+                                _mostrarDialogoActualizarAsistencia(asistencia),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () =>
                                 _eliminarAsistencia(asistencia.idasistencia!),
                           ),
@@ -1481,7 +1520,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       ),
     );
   }
+  // #endregion
 
+  // #region BUILDERS DE CONSULTAS
   // --- BUILDERS DE CONSULTAS ---
 
   // +++ CAMBIOS MURGO +++
@@ -1490,32 +1531,36 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
       // Wrapper de Theme para contraste en toda la pestaña
       child: Theme(
-        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
-          brightness: Brightness.light,
-          inputDecorationTheme: InputDecorationTheme(
-            labelStyle: TextStyle(color: Colors.brown[700]),
-            hintStyle: TextStyle(color: Colors.black54),
-            border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
-          ),
-          listTileTheme: ListTileThemeData(
-              textColor: Colors.black,
-              subtitleTextStyle: TextStyle(color: Colors.black87),
-              iconColor: Colors.brown.shade700
-          ),
-          cardColor: Colors.orange.shade100,
-        ),
+        data: colorsw
+            ? _getAppDarkTheme()
+            : Theme.of(context).copyWith(
+                brightness: Brightness.light,
+                inputDecorationTheme: const InputDecorationTheme(
+                  labelStyle: TextStyle(color: Colors.brown),
+                  hintStyle: TextStyle(color: Colors.black54),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.orangeAccent)),
+                ),
+                listTileTheme: ListTileThemeData(
+                    textColor: Colors.black,
+                    subtitleTextStyle: const TextStyle(color: Colors.black87),
+                    iconColor: Colors.brown.shade700),
+                cardColor: Colors.orange.shade100,
+              ),
         child: Column(
           children: [
             TabBar(
               controller: _tabController,
               isScrollable: true,
-              tabs: [
-                Tab(text: "Horarios"),       // Rodolfo
-                Tab(text: "Asistencias"),    // Rodolfo
-                Tab(text: "Por Edificio"),   // Rodolfo
-                Tab(text: "Por Profesor"),   // Murgo
+              tabs: const [
+                Tab(text: "Horarios"), // Rodolfo
+                Tab(text: "Asistencias"), // Rodolfo
+                Tab(text: "Por Edificio"), // Rodolfo
+                Tab(text: "Por Profesor"), // Murgo
               ],
               labelColor: Colors.deepOrange,
               unselectedLabelColor: Colors.grey,
@@ -1525,7 +1570,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildListaConsulta(_horariosDetallados, esHorario: true),  // Rodolfo
+                  _buildListaConsulta(_horariosDetallados, esHorario: true), // Rodolfo
                   _buildListaConsulta(_asistenciasDetalladas, esHorario: false), // Rodolfo
                   _buildConsultaPorEdificio(), // Rodolfo
                   _buildConsultaPorProfesor(), // Murgo
@@ -1539,7 +1584,6 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   }
   // +++ FIN CAMBIOS MURGO +++
 
-
   // +++ CAMBIOS RODOLFO +++
   Widget _buildConsultaPorEdificio() {
     final List<Map<String, dynamic>> horariosFiltrados;
@@ -1552,9 +1596,10 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
       horariosFiltrados.sort((a, b) {
         int diaCompare =
-        _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
+            _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
         if (diaCompare != 0) return diaCompare;
-        int salonCompare = (a['SALON'] as String).compareTo(b['SALON'] as String);
+        int salonCompare =
+            (a['SALON'] as String).compareTo(b['SALON'] as String);
         if (salonCompare != 0) return salonCompare;
         return _getHoraInicioValor(a['HORA'])
             .compareTo(_getHoraInicioValor(b['HORA']));
@@ -1562,7 +1607,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1575,10 +1620,10 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                 color: colorsw ? Colors.white : Colors.brown),
           ),
           // +++ FIN CAMBIOS MURGO +++
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             value: _selectedEdificioConsulta,
-            hint: Text("Seleccione un Edificio"),
+            hint: const Text("Seleccione un Edificio"),
             // +++ CAMBIOS MURGO (Contraste) +++
             style: TextStyle(color: colorsw ? Colors.white : Colors.black),
             // +++ FIN CAMBIOS MURGO +++
@@ -1593,20 +1638,20 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                 _selectedEdificioConsulta = value;
               });
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Edificio",
               border: OutlineInputBorder(),
             ),
           ),
-          Divider(height: 30),
+          const Divider(height: 30),
           if (_selectedEdificioConsulta == null)
-            Center(child: Text("Seleccione un edificio para ver horarios."))
+            const Center(child: Text("Seleccione un edificio para ver horarios."))
           else if (horariosFiltrados.isEmpty)
-            Center(child: Text("No hay clases registradas en este edificio."))
+            const Center(child: Text("No hay clases registradas en este edificio."))
           else
             ListView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: horariosFiltrados.length,
               itemBuilder: (context, index) {
                 final item = horariosFiltrados[index];
@@ -1614,13 +1659,11 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                   child: ListTile(
                     // +++ CAMBIOS MURGO (Contraste) +++
                     leading: Icon(Icons.meeting_room,
-                        color: colorsw
-                            ? Colors.white70
-                            : Colors.brown.shade700),
+                        color: colorsw ? Colors.white70 : Colors.brown.shade700),
                     // +++ FIN CAMBIOS MURGO +++
                     title: Text(
                       "Salón: ${item['SALON']} - ${item['DIA']}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                         "Maestro: ${item['PROFESOR']}\n${item['MATERIA']} (${item['HORA']})"),
@@ -1642,7 +1685,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
     if (_selectedProfesorConsulta != null) {
       final prof = _profesores.firstWhere(
-              (p) => p.nprofesor == _selectedProfesorConsulta,
+          (p) => p.nprofesor == _selectedProfesorConsulta,
           orElse: () => Profesor(nprofesor: '', nombre: '', carrera: ''));
       selectedProfName = prof.nombre;
     }
@@ -1656,7 +1699,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
       horariosFiltrados.sort((a, b) {
         int diaCompare =
-        _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
+            _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
         if (diaCompare != 0) return diaCompare;
         return _getHoraInicioValor(a['HORA'])
             .compareTo(_getHoraInicioValor(b['HORA']));
@@ -1664,7 +1707,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1677,10 +1720,10 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                 color: colorsw ? Colors.white : Colors.brown),
           ),
           // +++ FIN CAMBIOS MURGO +++
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             value: _selectedProfesorConsulta,
-            hint: Text("Seleccione un Profesor"),
+            hint: const Text("Seleccione un Profesor"),
             isExpanded: true,
             // +++ CAMBIOS MURGO (Contraste) +++
             style: TextStyle(color: colorsw ? Colors.white : Colors.black),
@@ -1696,20 +1739,20 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                 _selectedProfesorConsulta = value;
               });
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Profesor",
               border: OutlineInputBorder(),
             ),
           ),
-          Divider(height: 30),
+          const Divider(height: 30),
           if (_selectedProfesorConsulta == null)
-            Center(child: Text("Seleccione un profesor para ver su horario."))
+            const Center(child: Text("Seleccione un profesor para ver su horario."))
           else if (horariosFiltrados.isEmpty)
-            Center(child: Text("No hay clases registradas para este profesor."))
+            const Center(child: Text("No hay clases registradas para este profesor."))
           else
             ListView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: horariosFiltrados.length,
               itemBuilder: (context, index) {
                 final item = horariosFiltrados[index];
@@ -1717,13 +1760,11 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
                   child: ListTile(
                     // +++ CAMBIOS MURGO (Contraste) +++
                     leading: Icon(Icons.school,
-                        color: colorsw
-                            ? Colors.white70
-                            : Colors.brown.shade700),
+                        color: colorsw ? Colors.white70 : Colors.brown.shade700),
                     // +++ FIN CAMBIOS MURGO +++
                     title: Text(
                       "${item['DIA']} - ${item['HORA']}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                         "${item['MATERIA']}\n${item['EDIFICIO']} - ${item['SALON']}"),
@@ -1742,7 +1783,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   Widget _buildListaConsulta(List<Map<String, dynamic>> data,
       {required bool esHorario}) {
     if (data.isEmpty) {
-      return Center(child: Text("No hay datos para mostrar."));
+      return const Center(child: Text("No hay datos para mostrar."));
     }
     return ListView.builder(
       itemCount: data.length,
@@ -1751,7 +1792,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         if (esHorario) {
           return Card(
             child: ListTile(
-              leading: Icon(Icons.schedule, color: Colors.blue),
+              leading: const Icon(Icons.schedule, color: Colors.blue),
               title: Text(item['MATERIA'] ?? 'N/A'),
               subtitle: Text(
                   "${item['PROFESOR'] ?? 'N/A'} | ${item['DIA']} ${item['HORA']} | ${item['EDIFICIO']} - ${item['SALON']}"),
@@ -1774,7 +1815,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       },
     );
   }
+  // #endregion
 
+  // #region FUNCIONES AUXILIARES
   // --- FUNCIONES AUXILIARES (RODOLFO) ---
 
   // +++ CAMBIOS RODOLFO +++
@@ -1791,7 +1834,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     final matches = _horaRegExp.firstMatch(horaRango);
     if (matches == null) return 99.0;
     final double horarioInicio =
-    _timeToDouble(int.parse(matches.group(1)!), int.parse(matches.group(2)!));
+        _timeToDouble(int.parse(matches.group(1)!), int.parse(matches.group(2)!));
     return horarioInicio;
   }
 
@@ -1841,7 +1884,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         if (indice == 3) {
           _cargarAsistencias();
         }
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       },
       title: Row(
         children: [
@@ -1850,7 +1893,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
             flex: 2,
             child: Text(
               texto,
-              style: TextStyle(fontSize: 20),
+              style: const TextStyle(fontSize: 20),
             ),
           ),
         ],
@@ -1858,13 +1901,29 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // Nuevo método para el encabezado del Drawer con estadísticas
+  Widget _buildDrawerHeader() {
+    // Se utiliza un UserAccountsDrawerHeader simplificado
+    return UserAccountsDrawerHeader(
+      accountName: const Text('Gestión Escolar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+      accountEmail: const Text('Datos del Sistema', style: TextStyle(fontSize: 14)),
+      currentAccountPicture: const Icon(Icons.school, size: 50, color: Colors.white),
+      decoration: const BoxDecoration(
+        color: Colors.deepOrange,
+      ),
+      margin: EdgeInsets.zero,
+    );
+  }
+  // #endregion
+
+  // #region BUILD
   // --- BUILD (RODOLFO) ---
   // +++ CAMBIOS RODOLFO +++
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Gestión Escolar"),
+        title: const Text("Gestión Escolar"),
         // +++ CAMBIOS MURGO +++
         backgroundColor: colorsw ? Colors.grey[900] : Colors.deepOrange,
         // +++ FIN CAMBIOS MURGO +++
@@ -1879,41 +1938,67 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
             // El brightness le dice a los Text/Icons que sean blancos
             brightness: colorsw ? Brightness.dark : Brightness.light,
           ),
-          child: Container( // Se añade un Container para forzar el color de fondo
+          child: Container(
+            // Se añade un Container para forzar el color de fondo
             color: colorsw ? Colors.grey[850] : Colors.white,
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                SizedBox(
-                  height: 120,
-                  child: Container(
-                    color: Colors.deepOrange,
-                    alignment: Alignment.centerLeft,
-                    padding: EdgeInsets.only(left: 16.0, top: 40.0),
-                    child: Text(
-                      'Menú',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                // Encabezado usando el nuevo método
+                _buildDrawerHeader(),
+
+                // Estadísticas mostradas bajo el encabezado
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
+                  child: Text(
+                    'Estadísticas:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white70 : Colors.black54,
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Profesores: ${_profesores.length}',
+                          style: TextStyle(
+                              color: colorsw ? Colors.white : Colors.black)),
+                      Text('Materias: ${_materias.length}',
+                          style: TextStyle(
+                              color: colorsw ? Colors.white : Colors.black)),
+                      Text('Horarios: ${_horarios.length}',
+                          style: TextStyle(
+                              color: colorsw ? Colors.white : Colors.black)),
+                    ],
+                  ),
+                ),
+                Divider(
+                    color: colorsw
+                        ? Colors.white24
+                        : Colors.black26), // Color de divisor explícito
+
+                const SizedBox(height: 20), // Espacio antes de los ítems de navegación
+
                 _itemDrawer(0, Icons.person, "PROFESORES"),
                 _itemDrawer(1, Icons.book, "MATERIAS"),
                 _itemDrawer(2, Icons.schedule, "HORARIOS"),
                 _itemDrawer(3, Icons.check_box, "ASISTENCIAS"),
                 _itemDrawer(4, Icons.query_stats, "CONSULTAS"),
-                Divider(color: colorsw ? Colors.white24 : Colors.black26), // Color de divisor explícito
+                Divider(
+                    color: colorsw
+                        ? Colors.white24
+                        : Colors.black26), // Color de divisor explícito
                 Padding(
-                  padding: EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      SizedBox(
+                      const Expanded(
                         child: Text(
-                          "Modo obscuro",
+                          "Modo Oscuro",
                           style: TextStyle(
                             fontSize: 18,
                             // El color lo toma del Theme.brightness
