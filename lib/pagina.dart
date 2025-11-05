@@ -5,6 +5,7 @@ import 'profesor.dart';
 import 'materia.dart';
 import 'base.dart';
 
+// +++ CAMBIOS RODOLFO +++
 class APP03 extends StatefulWidget {
   const APP03({super.key});
 
@@ -12,11 +13,14 @@ class APP03 extends StatefulWidget {
   State<APP03> createState() => _APP03State();
 }
 
+// +++ CAMBIOS RODOLFO +++
 class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   int _index = 0;
   bool colorsw = false;
   late TabController _tabController;
 
+  // +++ CAMBIOS RODOLFO +++
+  // Listas de datos
   List<Profesor> _profesores = [];
   List<Materia> _materias = [];
   List<Horario> _horarios = [];
@@ -24,59 +28,71 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> _horariosDetallados = [];
   List<Map<String, dynamic>> _asistenciasDetalladas = [];
 
+  // +++ CAMBIOS RODOLFO +++
+  // Controladores de texto
   final nprofesorCtrl = TextEditingController();
   final nombreCtrl = TextEditingController();
   final carreraCtrl = TextEditingController();
-
   final nmatCtrl = TextEditingController();
   final descripcionCtrl = TextEditingController();
-
   final horaCtrl = TextEditingController();
+  final nhorarioAsistenciaCtrl = TextEditingController();
+  final fechaCtrl = TextEditingController();
 
+  // +++ CAMBIOS RODOLFO +++
+  // Variables de estado para formularios
   String? _selectedNProfesor;
   String? _selectedNMat;
   String? _selectedDia;
   String? _selectedEdificio;
   String? _selectedSalon;
   List<String> _salonesDisponibles = [];
-
   TimeOfDay? _selectedHoraInicio;
   TimeOfDay? _selectedHoraFin;
+  bool _asistenciaValor = false;
 
+  // +++ CAMBIOS RODOLFO +++
+  // Variables de estado para Asistencias
+  String? _selectedProfesorAsistencia;
+  Map<int, bool> _asistenciasMarcadas = {};
+
+  // +++ CAMBIOS RODOLFO +++
+  // VARIABLES PARA CONSULTAS (Por Edificio)
+  String? _selectedEdificioConsulta;
+  final List<String> _edificiosConsulta = ['UD', 'LABC', 'CB'];
+
+  // +++ CAMBIOS MURGO +++
+  // VARIABLES PARA CONSULTAS (Por Profesor)
+  String? _selectedProfesorConsulta; // Nro de Profesor (ID)
+  // +++ FIN CAMBIOS MURGO +++
+
+  // +++ CAMBIOS RODOLFO +++
+  // Regex para parsear "HH:MM a HH:MM"
+  final RegExp _horaRegExp =
+  RegExp(r'^([0-9]+):([0-9]+) a ([0-9]+):([0-9]+)$');
+
+  // +++ CAMBIOS RODOLFO +++
+  // Listas de salones
   final List<String> _diasSemana = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado'
+    'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
   ];
   final List<String> _salonesUD = List.generate(11, (i) => 'UD${i + 1}');
   final List<String> _salonesLABC = [
-    'LABCSA',
-    'LABCSB',
-    'LABCSC',
-    'CSC1',
-    'CSC2',
-    'TDM',
-    'TBD'
+    'LABCSA', 'LABCSB', 'LABCSC', 'CSC1', 'CSC2', 'TDM', 'TBD'
   ];
   final List<String> _salonesCB = List.generate(10, (i) => 'CB${i + 1}');
-
-  final nhorarioAsistenciaCtrl = TextEditingController();
-  final fechaCtrl = TextEditingController();
-  bool _asistenciaValor = false;
-
-  String? _selectedProfesorAsistencia;
-  Map<int, bool> _asistenciasMarcadas = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    // +++ CAMBIOS MURGO +++
+    // Se ajusta el TabController a 4 pestañas (eliminando la de fecha)
+    _tabController = TabController(length: 4, vsync: this);
+    // +++ FIN CAMBIOS MURGO +++
     _cargarDatos();
   }
 
+  // +++ CAMBIOS RODOLFO +++
   @override
   void dispose() {
     _tabController.dispose();
@@ -91,14 +107,16 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _cargarDatos() async {
     _cargarProfesores();
     _cargarMaterias();
     await _cargarHorarios();
-    _cargarAsistencias();
+    await _cargarAsistencias();
     _cargarDatosConsulta();
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _limpiarControladores() {
     nprofesorCtrl.clear();
     nombreCtrl.clear();
@@ -121,9 +139,18 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       _selectedHoraFin = null;
       _selectedProfesorAsistencia = null;
       _asistenciasMarcadas.clear();
+
+      _selectedEdificioConsulta = null;
+
+      // +++ CAMBIOS MURGO +++
+      _selectedProfesorConsulta = null;
+      // Se elimina la variable de fecha
+      // +++ FIN CAMBIOS MURGO +++
     });
   }
 
+  // --- MÉTODOS CRUD PROFESOR (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   void _cargarProfesores() async {
     final profesores = await DBAsistencia.mostrarProfesores();
     if (mounted) {
@@ -133,6 +160,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _agregarProfesor() async {
     if (nombreCtrl.text.isEmpty || carreraCtrl.text.isEmpty) {
       _mostrarSnackBar("Nombre y Carrera son obligatorios");
@@ -156,6 +184,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _eliminarProfesor(String nprofesor) async {
     await DBAsistencia.eliminarProfesor(nprofesor);
     _cargarProfesores();
@@ -163,6 +192,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Profesor eliminado");
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarDialogoActualizarProfesor(Profesor profesor) {
     nprofesorCtrl.text = profesor.nprofesor;
     nombreCtrl.text = profesor.nombre;
@@ -174,6 +204,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _actualizarProfesor() async {
     final p = Profesor(
       nprofesor: nprofesorCtrl.text,
@@ -188,6 +219,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Profesor actualizado");
   }
 
+  // --- MÉTODOS CRUD MATERIA (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   void _cargarMaterias() async {
     final materias = await DBAsistencia.mostrarMaterias();
     if (mounted) {
@@ -197,6 +230,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _agregarMateria() async {
     if (descripcionCtrl.text.isEmpty) {
       _mostrarSnackBar("La descripción de la Materia es obligatoria");
@@ -218,6 +252,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _eliminarMateria(String nmat) async {
     await DBAsistencia.eliminarMateria(nmat);
     _cargarMaterias();
@@ -225,6 +260,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Materia eliminada");
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarDialogoActualizarMateria(Materia materia) {
     nmatCtrl.text = materia.nmat;
     descripcionCtrl.text = materia.descripcion;
@@ -235,6 +271,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _actualizarMateria() async {
     final m = Materia(
       nmat: nmatCtrl.text,
@@ -248,6 +285,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Materia actualizada");
   }
 
+  // --- MÉTODOS CRUD HORARIO (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   Future<void> _seleccionarRangoHora(
       BuildContext context, Function(VoidCallback) updateState) async {
     final TimeOfDay? inicio = await showTimePicker(
@@ -281,6 +320,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     });
   }
 
+  // +++ CAMBIOS RODOLFO +++
   Future<bool> _validarHorario({
     required String? dia,
     required String? horaRango,
@@ -298,10 +338,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       return false;
     }
 
-    final RegExp horaRegExp = RegExp(
-        r'^([01]?\d|2[0-3]):([0-5]\d) a ([01]?\d|2[0-3]):([0-5]\d)$');
-
-    final matches = horaRegExp.firstMatch(horaRango);
+    final matches = _horaRegExp.firstMatch(horaRango);
     if (matches == null) {
       _mostrarSnackBar("Formato de hora inválido.");
       return false;
@@ -330,7 +367,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       if (hExistente.nhorario == nhorarioExcluir) continue;
 
       if (hExistente.dia == dia && hExistente.salon == salon) {
-        final matchesExistente = horaRegExp.firstMatch(hExistente.hora);
+        final matchesExistente = _horaRegExp.firstMatch(hExistente.hora);
         if (matchesExistente == null) continue;
 
         final existHoraInicio = int.parse(matchesExistente.group(1)!);
@@ -356,6 +393,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     return true;
   }
 
+  // +++ CAMBIOS RODOLFO +++
   Future<void> _cargarHorarios() async {
     try {
       final horarios = await DBAsistencia.mostrarHorarios();
@@ -369,6 +407,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _agregarHorario() async {
     bool esValido = false;
     try {
@@ -407,6 +446,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _eliminarHorario(int nhorario) async {
     await DBAsistencia.eliminarHorario(nhorario);
     _cargarHorarios();
@@ -414,6 +454,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Horario eliminado");
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarDialogoActualizarHorario(Horario horario) {
     _selectedNProfesor = horario.nprofesor;
     _selectedNMat = horario.nmat;
@@ -433,9 +474,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
 
     _selectedHoraInicio = null;
     _selectedHoraFin = null;
-    final RegExp horaRegExp = RegExp(
-        r'^([01]?\d|2[0-3]):([0-5]\d) a ([01]?\d|2[0-3]):([0-5]\d)$');
-    final matches = horaRegExp.firstMatch(horario.hora);
+    final matches = _horaRegExp.firstMatch(horario.hora);
     if (matches != null) {
       _selectedHoraInicio = TimeOfDay(
           hour: int.parse(matches.group(1)!),
@@ -456,6 +495,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _actualizarHorario(int nhorario) async {
     bool esValido = false;
     try {
@@ -496,7 +536,9 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
-  void _cargarAsistencias() async {
+  // --- MÉTODOS CRUD ASISTENCIA (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
+  Future<void> _cargarAsistencias() async {
     final asistencias = await DBAsistencia.mostrarAsistencias();
     if (mounted) {
       setState(() {
@@ -505,30 +547,36 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _guardarAsistenciasMarcadas() async {
-    if (_asistenciasMarcadas.isEmpty && _selectedProfesorAsistencia != null) {
-      final horariosDelProfesor = _horarios
-          .where((h) => h.nprofesor == _selectedProfesorAsistencia)
-          .toList();
-      for (var h in horariosDelProfesor) {
-        _asistenciasMarcadas[h.nhorario!] =
-            _asistenciasMarcadas[h.nhorario!] ?? false;
-      }
-    }
-
-    if (_asistenciasMarcadas.isEmpty) {
-      _mostrarSnackBar("Seleccione un profesor y marque sus asistencias.");
+    if (_selectedProfesorAsistencia == null) {
+      _mostrarSnackBar("Seleccione un profesor.");
       return;
     }
 
+    final String diaActual = _getDiaActualString();
     final String fechaActual = DateTime.now()
         .toIso8601String()
         .replaceAll('T', ' ')
         .substring(0, 23);
 
+    final Set<int> nHorariosDeHoy = _horarios
+        .where((h) =>
+    h.nprofesor == _selectedProfesorAsistencia && h.dia == diaActual)
+        .map((h) => h.nhorario!)
+        .toSet();
+
+    final Map<int, bool> asistenciasParaGuardar = Map.from(_asistenciasMarcadas)
+      ..removeWhere((key, value) => !nHorariosDeHoy.contains(key));
+
+    if (asistenciasParaGuardar.isEmpty) {
+      _mostrarSnackBar("No hay asistencias marcadas válidas para guardar hoy.");
+      return;
+    }
+
     int contador = 0;
     try {
-      for (var entry in _asistenciasMarcadas.entries) {
+      for (var entry in asistenciasParaGuardar.entries) {
         final asistencia = Asistencia(
           nhorario: entry.key,
           fecha: fechaActual,
@@ -539,14 +587,16 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
       }
 
       _limpiarControladores();
-      _cargarAsistencias();
+      await _cargarAsistencias();
       _cargarDatosConsulta();
+      setState(() {});
       _mostrarSnackBar("$contador asistencias guardadas correctamente.");
     } catch (e) {
       _mostrarSnackBar("Error al guardar asistencias: $e");
     }
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _eliminarAsistencia(int idasistencia) async {
     await DBAsistencia.eliminarAsistencia(idasistencia);
     _cargarAsistencias();
@@ -554,6 +604,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Asistencia eliminada");
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarDialogoActualizarAsistencia(Asistencia asistencia) {
     nhorarioAsistenciaCtrl.text = asistencia.nhorario.toString();
     fechaCtrl.text = asistencia.fecha;
@@ -572,6 +623,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _actualizarAsistencia(int idasistencia) async {
     final a = Asistencia(
       idasistencia: idasistencia,
@@ -587,6 +639,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     _mostrarSnackBar("Asistencia actualizada");
   }
 
+  // --- MÉTODOS DE CONSULTA (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   void _cargarDatosConsulta() async {
     final hDetallados = await DBAsistencia.mostrarHorariosDetallados();
     final aDetalladas = await DBAsistencia.mostrarAsistenciasDetalladas();
@@ -598,6 +652,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // --- MÉTODOS DE UI (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -605,15 +661,40 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   void _mostrarDialogo(String title, Widget content,
       {required VoidCallback onGuardar}) {
     showDialog(
       context: context,
       builder: (context) {
+        // +++ CAMBIOS MURGO +++
+        // (Modo Oscuro: Fondo gris oscuro, Título blanco)
         return AlertDialog(
-          backgroundColor: Colors.orange.shade50,
-          title: Text(title, style: TextStyle(color: Colors.brown)),
-          content: SingleChildScrollView(child: content),
+          backgroundColor:
+          colorsw ? Colors.grey[800] : Colors.orange.shade50,
+          title: Text(title,
+              style: TextStyle(
+                  color: colorsw ? Colors.white : Colors.brown)),
+          // (Wrapper de Theme para contraste de texto en el contenido)
+          content: Theme(
+            data: Theme.of(context).copyWith(
+              brightness: colorsw ? Brightness.dark : Brightness.light,
+              // Estilo para el texto DENTRO del Dropdown
+              textTheme: Theme.of(context).textTheme.copyWith(
+                titleMedium: TextStyle(color: colorsw ? Colors.white : Colors.black),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                labelStyle: TextStyle(
+                    color: colorsw ? Colors.white70 : Colors.brown[700]),
+                hintStyle: TextStyle(color: colorsw ? Colors.white54 : Colors.black54),
+              ),
+              listTileTheme: ListTileThemeData(
+                textColor: colorsw ? Colors.white : Colors.black,
+                iconColor: colorsw ? Colors.white70 : Colors.brown.shade700,
+              ),
+            ),
+            child: SingleChildScrollView(child: content),
+          ),
           actions: [
             TextButton(
               child:
@@ -631,10 +712,13 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
             ),
           ],
         );
+        // +++ FIN CAMBIOS MURGO +++
       },
     );
   }
 
+  // --- BUILDERS DE FORMULARIOS (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildFormularioProfesor({bool actualizando = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -654,6 +738,7 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildFormularioMateria({bool actualizando = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -670,155 +755,180 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildFormularioHorario({bool actualizando = false}) {
-    return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setDialogState) {
-          void _updateState(VoidCallback fn) {
-            if (actualizando) {
-              setDialogState(fn);
-            } else {
-              setState(fn);
-            }
-          }
+  // +++ CAMBIOS RODOLFO +++
+  // (Corrección de layout)
+  Widget _buildFormularioHorarioContenido(
+      void Function(VoidCallback) updateState) {
+    void _onEdificioChanged(String? newValue) {
+      updateState(() {
+        _selectedEdificio = newValue;
+        _selectedSalon = null;
+        if (newValue == 'UD') {
+          _salonesDisponibles = _salonesUD;
+        } else if (newValue == 'LABC') {
+          _salonesDisponibles = _salonesLABC;
+        } else if (newValue == 'CB') {
+          _salonesDisponibles = _salonesCB;
+        } else {
+          _salonesDisponibles = [];
+        }
+      });
+    }
 
-          void _onEdificioChanged(String? newValue) {
-            _updateState(() {
-              _selectedEdificio = newValue;
-              _selectedSalon = null;
-              if (newValue == 'UD') {
-                _salonesDisponibles = _salonesUD;
-              } else if (newValue == 'LABC') {
-                _salonesDisponibles = _salonesLABC;
-              } else if (newValue == 'CB') {
-                _salonesDisponibles = _salonesCB;
-              } else {
-                _salonesDisponibles = [];
-              }
+    String _getHoraRangoTexto() {
+      if (_selectedHoraInicio == null || _selectedHoraFin == null) {
+        return "Seleccione un rango de hora";
+      }
+      final String inicioFormato = _selectedHoraInicio!.format(context);
+      final String finFormato = _selectedHoraFin!.format(context);
+      return "$inicioFormato a $finFormato";
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedNProfesor,
+          hint: Text("Seleccione un Profesor"),
+          isExpanded: true,
+          // +++ CAMBIOS MURGO (Contraste) +++
+          style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+          // +++ FIN CAMBIOS MURGO +++
+          items: _profesores.map((profesor) {
+            return DropdownMenuItem(
+              value: profesor.nprofesor,
+              child: Text(profesor.nombre, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (value) {
+            updateState(() {
+              _selectedNProfesor = value;
             });
-          }
-
-          String _getHoraRangoTexto() {
-            if (_selectedHoraInicio == null || _selectedHoraFin == null) {
-              return "Seleccione un rango de hora";
-            }
-            final String inicioFormato = _selectedHoraInicio!.format(context);
-            final String finFormato = _selectedHoraFin!.format(context);
-            return "$inicioFormato a $finFormato";
-          }
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: _selectedNProfesor,
-                hint: Text("Seleccione un Profesor"),
-                isExpanded: true,
-                items: _profesores.map((profesor) {
-                  return DropdownMenuItem(
-                    value: profesor.nprofesor,
-                    child: Text(profesor.nombre, overflow: TextOverflow.ellipsis),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  _updateState(() {
-                    _selectedNProfesor = value;
-                  });
-                },
-                decoration: InputDecoration(labelText: "Profesor"),
-                validator: (value) => value == null ? 'Campo requerido' : null,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedNMat,
-                hint: Text("Seleccione una Materia"),
-                isExpanded: true,
-                items: _materias.map((materia) {
-                  return DropdownMenuItem(
-                    value: materia.nmat,
-                    child: Text(materia.descripcion, overflow: TextOverflow.ellipsis),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  _updateState(() {
-                    _selectedNMat = value;
-                  });
-                },
-                decoration: InputDecoration(labelText: "Materia"),
-                validator: (value) => value == null ? 'Campo requerido' : null,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedDia,
-                hint: Text("Seleccione un Día"),
-                items: _diasSemana.map((dia) {
-                  return DropdownMenuItem(
-                    value: dia,
-                    child: Text(dia),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  _updateState(() {
-                    _selectedDia = value;
-                  });
-                },
-                decoration: InputDecoration(labelText: "Día de la semana"),
-                validator: (value) => value == null ? 'Campo requerido' : null,
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.access_time, color: Colors.brown.shade700),
-                title: Text("Rango de Hora"),
-                subtitle: Text(
-                  _getHoraRangoTexto(),
-                  style: TextStyle(
-                      color: _selectedHoraInicio == null
-                          ? Colors.grey.shade600
-                          : Colors.black,
-                      fontSize: 16),
-                ),
-                onTap: () {
-                  _seleccionarRangoHora(context, _updateState);
-                },
-              ),
-              Divider(color: Colors.grey.shade700, height: 1),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedEdificio,
-                hint: Text("Seleccione un Edificio"),
-                items: ['UD', 'LABC', 'CB'].map((edificio) {
-                  return DropdownMenuItem(
-                    value: edificio,
-                    child: Text(edificio),
-                  );
-                }).toList(),
-                onChanged: _onEdificioChanged,
-                decoration: InputDecoration(labelText: "Edificio"),
-                validator: (value) => value == null ? 'Campo requerido' : null,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedSalon,
-                hint: Text(_selectedEdificio == null
-                    ? "Seleccione Edificio"
-                    : "Seleccione un Salón"),
-                isExpanded: true,
-                items: _salonesDisponibles.map((salon) {
-                  return DropdownMenuItem(
-                    value: salon,
-                    child: Text(salon),
-                  );
-                }).toList(),
-                onChanged: _salonesDisponibles.isEmpty
-                    ? null
-                    : (value) {
-                  _updateState(() {
-                    _selectedSalon = value;
-                  });
-                },
-                decoration: InputDecoration(labelText: "Salón"),
-                validator: (value) => value == null ? 'Campo requerido' : null,
-              ),
-            ],
-          );
-        });
+          },
+          decoration: InputDecoration(labelText: "Profesor"),
+          validator: (value) => value == null ? 'Campo requerido' : null,
+        ),
+        DropdownButtonFormField<String>(
+          value: _selectedNMat,
+          hint: Text("Seleccione una Materia"),
+          isExpanded: true,
+          // +++ CAMBIOS MURGO (Contraste) +++
+          style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+          // +++ FIN CAMBIOS MURGO +++
+          items: _materias.map((materia) {
+            return DropdownMenuItem(
+              value: materia.nmat,
+              child: Text(materia.descripcion, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (value) {
+            updateState(() {
+              _selectedNMat = value;
+            });
+          },
+          decoration: InputDecoration(labelText: "Materia"),
+          validator: (value) => value == null ? 'Campo requerido' : null,
+        ),
+        DropdownButtonFormField<String>(
+          value: _selectedDia,
+          hint: Text("Seleccione un Día"),
+          // +++ CAMBIOS MURGO (Contraste) +++
+          style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+          // +++ FIN CAMBIOS MURGO +++
+          items: _diasSemana.map((dia) {
+            return DropdownMenuItem(
+              value: dia,
+              child: Text(dia),
+            );
+          }).toList(),
+          onChanged: (value) {
+            updateState(() {
+              _selectedDia = value;
+            });
+          },
+          decoration: InputDecoration(labelText: "Día de la semana"),
+          validator: (value) => value == null ? 'Campo requerido' : null,
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          // +++ CAMBIOS MURGO (Contraste) +++
+          leading: Icon(Icons.access_time,
+              color: colorsw ? Colors.white70 : Colors.brown.shade700),
+          title: Text("Rango de Hora"),
+          subtitle: Text(
+            _getHoraRangoTexto(),
+            style: TextStyle(
+                color: _selectedHoraInicio == null
+                    ? Colors.grey.shade600
+                    : (colorsw ? Colors.white : Colors.black), // Corregido
+                fontSize: 16),
+          ),
+          // +++ FIN CAMBIOS MURGO +++
+          onTap: () {
+            _seleccionarRangoHora(context, updateState);
+          },
+        ),
+        Divider(color: Colors.grey.shade700, height: 1),
+        DropdownButtonFormField<String>(
+          value: _selectedEdificio,
+          hint: Text("Seleccione un Edificio"),
+          // +++ CAMBIOS MURGO (Contraste) +++
+          style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+          // +++ FIN CAMBIOS MURGO +++
+          items: ['UD', 'LABC', 'CB'].map((edificio) {
+            return DropdownMenuItem(
+              value: edificio,
+              child: Text(edificio),
+            );
+          }).toList(),
+          onChanged: _onEdificioChanged,
+          decoration: InputDecoration(labelText: "Edificio"),
+          validator: (value) => value == null ? 'Campo requerido' : null,
+        ),
+        DropdownButtonFormField<String>(
+          value: _selectedSalon,
+          hint: Text(_selectedEdificio == null
+              ? "Seleccione Edificio"
+              : "Seleccione un Salón"),
+          isExpanded: true,
+          // +++ CAMBIOS MURGO (Contraste) +++
+          style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+          // +++ FIN CAMBIOS MURGO +++
+          items: _salonesDisponibles.map((salon) {
+            return DropdownMenuItem(
+              value: salon,
+              child: Text(salon),
+            );
+          }).toList(),
+          onChanged: _salonesDisponibles.isEmpty
+              ? null
+              : (value) {
+            updateState(() {
+              _selectedSalon = value;
+            });
+          },
+          decoration: InputDecoration(labelText: "Salón"),
+          validator: (value) => value == null ? 'Campo requerido' : null,
+        ),
+      ],
+    );
   }
 
+  // +++ CAMBIOS RODOLFO +++
+  // (Corrección de layout)
+  Widget _buildFormularioHorario({bool actualizando = false}) {
+    if (actualizando) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setDialogState) {
+          return _buildFormularioHorarioContenido((fn) => setDialogState(fn));
+        },
+      );
+    } else {
+      return _buildFormularioHorarioContenido((fn) => setState(fn));
+    }
+  }
+
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildFormularioAsistencia({
     required Function(Function()) setDialogState,
   }) {
@@ -846,6 +956,8 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // --- BUILDER PRINCIPAL (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   Widget? contenido() {
     switch (_index) {
       case 0:
@@ -863,337 +975,770 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     }
   }
 
+  // +++ CAMBIOS MURGO +++
+  // Define un tema oscuro reutilizable para aplicar a todas las pestañas
+  ThemeData _getAppDarkTheme() {
+    final baseTheme = ThemeData.dark(); // El tema oscuro base
+    return baseTheme.copyWith(
+      // Fondo de la pestaña
+      scaffoldBackgroundColor: Colors.grey[900],
+      // Color de las tarjetas
+      cardColor: Colors.grey[800],
+      // Forzar que el texto principal sea blanco
+      textTheme: baseTheme.textTheme.apply(
+        bodyColor: Colors.white, // Para Text()
+        displayColor: Colors.white, // Para cabeceras
+      ),
+      // Estilos para TextFields y Dropdowns
+      inputDecorationTheme: InputDecorationTheme(
+        labelStyle: TextStyle(color: Colors.white70),
+        hintStyle: TextStyle(color: Colors.white54),
+        border: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
+      ),
+      // Forzar el color de texto de ListTile
+      listTileTheme: ListTileThemeData(
+        textColor: Colors.white,
+        subtitleTextStyle: TextStyle(color: Colors.white70), // Subtítulos de listas
+      ),
+      // Color de los Dropdowns
+      canvasColor: Colors.grey[850], // Fondo del menú dropdown
+    );
+  }
+  // +++ FIN CAMBIOS MURGO +++
+
+  // --- BUILDERS DE PESTAÑAS (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildProfesoresCRUD() {
+    // +++ CAMBIOS MURGO +++
     return Container(
-      color: colorsw ? Colors.grey[800] : Colors.orange.shade50,
+      color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
       padding: EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text("Gestión de Profesores",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown)),
-            _buildFormularioProfesor(actualizando: false),
-            SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrangeAccent),
-              onPressed: _agregarProfesor,
-              child: Text("Guardar Profesor"),
-            ),
-            Divider(height: 30),
-            Text("Profesores Registrados",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _profesores.length,
-              itemBuilder: (context, index) {
-                final profesor = _profesores[index];
-                return Card(
-                  color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
-                  child: ListTile(
-                    title: Text(profesor.nombre),
-                    subtitle: Text(
-                        "N°: ${profesor.nprofesor} | Carrera: ${profesor.carrera}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () =>
-                              _mostrarDialogoActualizarProfesor(profesor),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () =>
-                              _eliminarProfesor(profesor.nprofesor),
-                        ),
-                      ],
+      // Wrapper de Theme para contraste de texto
+      child: Theme(
+        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
+          brightness: Brightness.light,
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown[700]),
+            hintStyle: TextStyle(color: Colors.black54),
+          ),
+        ),
+        child: SingleChildScrollView(
+          // +++ FIN CAMBIOS MURGO +++
+          child: Column(
+            children: [
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Gestión de Profesores",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.brown)),
+              // +++ FIN CAMBIOS MURGO +++
+              _buildFormularioProfesor(actualizando: false),
+              SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent),
+                onPressed: _agregarProfesor,
+                child: Text("Guardar Profesor"),
+              ),
+              Divider(height: 30),
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Profesores Registrados",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.black87)),
+              // +++ FIN CAMBIOS MURGO +++
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: _profesores.length,
+                itemBuilder: (context, index) {
+                  final profesor = _profesores[index];
+                  return Card(
+                    color: colorsw ? Colors.grey[800] : Colors.orange.shade100,
+                    child: ListTile(
+                      title: Text(profesor.nombre),
+                      subtitle: Text(
+                          "N°: ${profesor.nprofesor} | Carrera: ${profesor.carrera}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () =>
+                                _mostrarDialogoActualizarProfesor(profesor),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () =>
+                                _eliminarProfesor(profesor.nprofesor),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildMateriasCRUD() {
+    // +++ CAMBIOS MURGO +++
     return Container(
-      color: colorsw ? Colors.grey[800] : Colors.orange.shade50,
+      color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
       padding: EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text("Gestión de Materias",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown)),
-            _buildFormularioMateria(actualizando: false),
-            SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrangeAccent),
-              onPressed: _agregarMateria,
-              child: Text("Guardar Materia"),
-            ),
-            Divider(height: 30),
-            Text("Materias Registradas",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _materias.length,
-              itemBuilder: (context, index) {
-                final materia = _materias[index];
-                return Card(
-                  color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
-                  child: ListTile(
-                    title: Text(materia.descripcion),
-                    subtitle: Text("NMAT: ${materia.nmat}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () =>
-                              _mostrarDialogoActualizarMateria(materia),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _eliminarMateria(materia.nmat),
-                        ),
-                      ],
+      // Wrapper de Theme para contraste de texto
+      child: Theme(
+        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
+          brightness: Brightness.light,
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown[700]),
+            hintStyle: TextStyle(color: Colors.black54),
+          ),
+        ),
+        child: SingleChildScrollView(
+          // +++ FIN CAMBIOS MURGO +++
+          child: Column(
+            children: [
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Gestión de Materias",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.brown)),
+              // +++ FIN CAMBIOS MURGO +++
+              _buildFormularioMateria(actualizando: false),
+              SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent),
+                onPressed: _agregarMateria,
+                child: Text("Guardar Materia"),
+              ),
+              Divider(height: 30),
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Materias Registradas",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.black87)),
+              // +++ FIN CAMBIOS MURGO +++
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: _materias.length,
+                itemBuilder: (context, index) {
+                  final materia = _materias[index];
+                  return Card(
+                    color: colorsw ? Colors.grey[800] : Colors.orange.shade100,
+                    child: ListTile(
+                      title: Text(materia.descripcion),
+                      subtitle: Text("NMAT: ${materia.nmat}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () =>
+                                _mostrarDialogoActualizarMateria(materia),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _eliminarMateria(materia.nmat),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildHorariosCRUD() {
+    // +++ CAMBIOS MURGO +++
     return Container(
-      color: colorsw ? Colors.grey[800] : Colors.orange.shade50,
+      color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
       padding: EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text("Gestión de Horarios",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown)),
-            _buildFormularioHorario(actualizando: false),
-            SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrangeAccent),
-              onPressed: _agregarHorario,
-              child: Text("Guardar Horario"),
-            ),
-            Divider(height: 30),
-            Text("Horarios Registrados",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _horarios.length,
-              itemBuilder: (context, index) {
-                final horario = _horarios[index];
-                final profNombre = _profesores
-                    .firstWhere((p) => p.nprofesor == horario.nprofesor,
-                    orElse: () =>
-                        Profesor(nprofesor: '', nombre: 'N/A', carrera: ''))
-                    .nombre;
-                final matDesc = _materias
-                    .firstWhere((m) => m.nmat == horario.nmat,
-                    orElse: () => Materia(nmat: '', descripcion: 'N/A'))
-                    .descripcion;
-
-                return Card(
-                  color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
-                  child: ListTile(
-                    title: Text("$matDesc (${horario.hora})"),
-                    subtitle: Text(
-                        "$profNombre | ${horario.dia} | ${horario.edificio} - ${horario.salon}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () =>
-                              _mostrarDialogoActualizarHorario(horario),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _eliminarHorario(horario.nhorario!),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
+      // Wrapper de Theme para contraste de texto
+      child: Theme(
+        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
+          brightness: Brightness.light,
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown[700]),
+            hintStyle: TextStyle(color: Colors.black54),
+          ),
+          listTileTheme: ListTileThemeData(
+            textColor: Colors.black,
+            iconColor: Colors.brown.shade700,
+          ),
+        ),
+        child: SingleChildScrollView(
+          // +++ FIN CAMBIOS MURGO +++
+          child: Column(
+            children: [
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Gestión de Horarios",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.brown)),
+              // +++ FIN CAMBIOS MURGO +++
+              _buildFormularioHorario(actualizando: false),
+              SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent),
+                onPressed: _agregarHorario,
+                child: Text("Guardar Horario"),
+              ),
+              Divider(height: 30),
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Horarios Registrados",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.black87)),
+              // +++ FIN CAMBIOS MURGO +++
+              SizedBox(height: 10),
+              _buildHorarioListaWidget(),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // +++ CAMBIOS RODOLFO +++
+  Widget _buildHorarioListaWidget() {
+    final List<Horario> horariosOrdenados = List.from(_horarios);
+    horariosOrdenados.sort((a, b) {
+      int diaCompare =
+      _getDiaSemanaValor(a.dia).compareTo(_getDiaSemanaValor(b.dia));
+      if (diaCompare != 0) {
+        return diaCompare;
+      }
+      return _getHoraInicioValor(a.hora).compareTo(_getHoraInicioValor(b.hora));
+    });
+
+    if (horariosOrdenados.isEmpty) {
+      return Center(child: Text("No hay horarios registrados."));
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: horariosOrdenados.length,
+      itemBuilder: (context, index) {
+        final horario = horariosOrdenados[index];
+        final profNombre = _profesores
+            .firstWhere((p) => p.nprofesor == horario.nprofesor,
+            orElse: () => Profesor(nprofesor: '', nombre: 'N/A', carrera: ''))
+            .nombre;
+        final matDesc = _materias
+            .firstWhere((m) => m.nmat == horario.nmat,
+            orElse: () => Materia(nmat: '', descripcion: 'N/A'))
+            .descripcion;
+
+        return Card(
+          color: colorsw ? Colors.grey[800] : Colors.orange.shade100,
+          child: ListTile(
+            title: Text("$matDesc (${horario.hora})"),
+            subtitle: Text(
+                "$profNombre | ${horario.dia} | ${horario.edificio} - ${horario.salon}"),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => _mostrarDialogoActualizarHorario(horario),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _eliminarHorario(horario.nhorario!),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildAsistenciasCRUD() {
     final horariosDelProfesor = _horarios
         .where((h) => h.nprofesor == _selectedProfesorAsistencia)
         .toList();
 
+    final String diaActual = _getDiaActualString();
+    final String fechaDeHoy = _getFechaActualString();
+
+    final List<Asistencia> asistenciasOrdenadas = List.from(_asistencias);
+    asistenciasOrdenadas.sort((a, b) => b.fecha.compareTo(a.fecha));
+
+    // +++ CAMBIOS MURGO +++
     return Container(
-      color: colorsw ? Colors.grey[800] : Colors.orange.shade50,
+      color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
       padding: EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text("Firmar Asistencias",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown)),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedProfesorAsistencia,
-              hint: Text("Seleccione un Profesor para firmar"),
-              isExpanded: true,
-              items: _profesores.map((profesor) {
-                return DropdownMenuItem(
-                  value: profesor.nprofesor,
-                  child: Text(profesor.nombre, overflow: TextOverflow.ellipsis),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedProfesorAsistencia = value;
-                  _asistenciasMarcadas.clear();
-                });
-              },
-              decoration: InputDecoration(labelText: "Profesor"),
-            ),
-            SizedBox(height: 10),
-            if (_selectedProfesorAsistencia != null)
+      // Wrapper de Theme para contraste de texto
+      child: Theme(
+        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
+          brightness: Brightness.light,
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown[700]),
+            hintStyle: TextStyle(color: Colors.black54),
+          ),
+        ),
+        child: SingleChildScrollView(
+          // +++ FIN CAMBIOS MURGO +++
+          child: Column(
+            children: [
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Firmar Asistencias",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.brown)),
+              // +++ FIN CAMBIOS MURGO +++
+              DropdownButtonFormField<String>(
+                initialValue: _selectedProfesorAsistencia,
+                hint: Text("Seleccione un Profesor para firmar"),
+                isExpanded: true,
+                // +++ CAMBIOS MURGO (Contraste) +++
+                style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+                // +++ FIN CAMBIOS MURGO +++
+                items: _profesores.map((profesor) {
+                  return DropdownMenuItem(
+                    value: profesor.nprofesor,
+                    child:
+                    Text(profesor.nombre, overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedProfesorAsistencia = value;
+                    _asistenciasMarcadas.clear();
+                  });
+                },
+                decoration: InputDecoration(labelText: "Profesor"),
+              ),
+              SizedBox(height: 10),
+              if (_selectedProfesorAsistencia != null)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: horariosDelProfesor.length,
+                  itemBuilder: (context, index) {
+                    final horario = horariosDelProfesor[index];
+                    final materiaDesc = _materias
+                        .firstWhere((m) => m.nmat == horario.nmat,
+                        orElse: () =>
+                            Materia(nmat: '', descripcion: 'N/A'))
+                        .descripcion;
+
+                    final bool esDiaCorrecto = (horario.dia == diaActual);
+
+                    final asistenciaHoy = _asistencias.lastWhere(
+                            (a) =>
+                        a.nhorario == horario.nhorario &&
+                            a.fecha.startsWith(fechaDeHoy),
+                        orElse: () => Asistencia(
+                            idasistencia: -1,
+                            nhorario: -1,
+                            fecha: '',
+                            asistencia: false));
+
+                    final bool yaAsistioHoy = asistenciaHoy.idasistencia != -1;
+
+                    bool valorSwitch;
+                    bool habilitadoSwitch;
+
+                    if (yaAsistioHoy) {
+                      valorSwitch = asistenciaHoy.asistencia;
+                      habilitadoSwitch = false;
+                    } else if (esDiaCorrecto) {
+                      valorSwitch =
+                          _asistenciasMarcadas[horario.nhorario!] ?? false;
+                      habilitadoSwitch = true;
+                    } else {
+                      valorSwitch = false;
+                      habilitadoSwitch = false;
+                    }
+
+                    return SwitchListTile(
+                      title: Text(materiaDesc),
+                      subtitle: Text(
+                          "${horario.dia} ${horario.hora} | ${horario.edificio} - ${horario.salon}"),
+                      value: valorSwitch,
+                      onChanged: habilitadoSwitch
+                          ? (val) {
+                        setState(() {
+                          _asistenciasMarcadas[horario.nhorario!] = val;
+                        });
+                      }
+                          : null,
+                      activeColor: habilitadoSwitch
+                          ? Colors.deepOrangeAccent
+                          : Colors.grey,
+                      inactiveThumbColor:
+                      habilitadoSwitch ? null : Colors.grey.shade400,
+                      inactiveTrackColor:
+                      habilitadoSwitch ? null : Colors.grey.shade300,
+                    );
+                  },
+                ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent),
+                onPressed: _selectedProfesorAsistencia == null
+                    ? null
+                    : _guardarAsistenciasMarcadas,
+                child: Text("Guardar Firmas"),
+              ),
+              Divider(height: 30),
+              // +++ CAMBIOS MURGO (Contraste) +++
+              Text("Asistencias Registradas",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorsw ? Colors.white : Colors.black87)),
+              // +++ FIN CAMBIOS MURGO +++
               ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: horariosDelProfesor.length,
+                itemCount: asistenciasOrdenadas.length,
                 itemBuilder: (context, index) {
-                  final horario = horariosDelProfesor[index];
+                  final asistencia = asistenciasOrdenadas[index];
+
+                  final horarioAsistencia = _horarios.firstWhere(
+                          (h) => h.nhorario == asistencia.nhorario,
+                      orElse: () => Horario(
+                          nprofesor: '',
+                          nmat: '',
+                          dia: '',
+                          hora: '',
+                          edificio: '',
+                          salon: '',
+                          nhorario: -1));
+
                   final materiaDesc = _materias
-                      .firstWhere((m) => m.nmat == horario.nmat,
-                      orElse: () => Materia(nmat: '', descripcion: 'N/A'))
+                      .firstWhere((m) => m.nmat == horarioAsistencia.nmat,
+                      orElse: () => Materia(
+                          nmat: '', descripcion: 'Horario borrado'))
                       .descripcion;
 
-                  return SwitchListTile(
-                    title: Text(materiaDesc),
-                    subtitle: Text(
-                        "${horario.dia} ${horario.hora} | ${horario.edificio} - ${horario.salon}"),
-                    value: _asistenciasMarcadas[horario.nhorario!] ?? false,
-                    onChanged: (val) {
-                      setState(() {
-                        _asistenciasMarcadas[horario.nhorario!] = val;
-                      });
-                    },
+                  return Card(
+                    color: colorsw ? Colors.grey[800] : Colors.orange.shade100,
+                    child: ListTile(
+                      leading: Icon(
+                        asistencia.asistencia
+                            ? Icons.check_circle
+                            : Icons.cancel,
+                        color:
+                        asistencia.asistencia ? Colors.green : Colors.red,
+                      ),
+                      title: Text("Materia: $materiaDesc"),
+                      subtitle: Text(
+                          "Fecha: ${asistencia.fecha} (ID Horario: ${asistencia.nhorario})"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () =>
+                                _mostrarDialogoActualizarAsistencia(
+                                    asistencia),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () =>
+                                _eliminarAsistencia(asistencia.idasistencia!),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrangeAccent),
-              onPressed: _selectedProfesorAsistencia == null
-                  ? null
-                  : _guardarAsistenciasMarcadas,
-              child: Text("Guardar Firmas"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- BUILDERS DE CONSULTAS ---
+
+  // +++ CAMBIOS MURGO +++
+  Widget _buildConsultasView() {
+    return Container(
+      color: colorsw ? Colors.grey[900] : Colors.orange.shade50,
+      // Wrapper de Theme para contraste en toda la pestaña
+      child: Theme(
+        data: colorsw ? _getAppDarkTheme() : Theme.of(context).copyWith(
+          brightness: Brightness.light,
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown[700]),
+            hintStyle: TextStyle(color: Colors.black54),
+            border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
+          ),
+          listTileTheme: ListTileThemeData(
+              textColor: Colors.black,
+              subtitleTextStyle: TextStyle(color: Colors.black87),
+              iconColor: Colors.brown.shade700
+          ),
+          cardColor: Colors.orange.shade100,
+        ),
+        child: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabs: [
+                Tab(text: "Horarios"),       // Rodolfo
+                Tab(text: "Asistencias"),    // Rodolfo
+                Tab(text: "Por Edificio"),   // Rodolfo
+                Tab(text: "Por Profesor"),   // Murgo
+              ],
+              labelColor: Colors.deepOrange,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.deepOrangeAccent,
             ),
-            Divider(height: 30),
-            Text("Asistencias Registradas",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _asistencias.length,
-              itemBuilder: (context, index) {
-                final asistencia = _asistencias[index];
-                return Card(
-                  color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
-                  child: ListTile(
-                    leading: Icon(
-                      asistencia.asistencia
-                          ? Icons.check_circle
-                          : Icons.cancel,
-                      color:
-                      asistencia.asistencia ? Colors.green : Colors.red,
-                    ),
-                    title: Text("Horario: ${asistencia.nhorario}"),
-                    subtitle: Text("Fecha: ${asistencia.fecha}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () =>
-                              _mostrarDialogoActualizarAsistencia(asistencia),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () =>
-                              _eliminarAsistencia(asistencia.idasistencia!),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildListaConsulta(_horariosDetallados, esHorario: true),  // Rodolfo
+                  _buildListaConsulta(_asistenciasDetalladas, esHorario: false), // Rodolfo
+                  _buildConsultaPorEdificio(), // Rodolfo
+                  _buildConsultaPorProfesor(), // Murgo
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+  // +++ FIN CAMBIOS MURGO +++
 
-  Widget _buildConsultasView() {
-    return Container(
-      color: colorsw ? Colors.grey[800] : Colors.orange.shade50,
+
+  // +++ CAMBIOS RODOLFO +++
+  Widget _buildConsultaPorEdificio() {
+    final List<Map<String, dynamic>> horariosFiltrados;
+    if (_selectedEdificioConsulta == null) {
+      horariosFiltrados = [];
+    } else {
+      horariosFiltrados = _horariosDetallados
+          .where((h) => h['EDIFICIO'] == _selectedEdificioConsulta)
+          .toList();
+
+      horariosFiltrados.sort((a, b) {
+        int diaCompare =
+        _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
+        if (diaCompare != 0) return diaCompare;
+        int salonCompare = (a['SALON'] as String).compareTo(b['SALON'] as String);
+        if (salonCompare != 0) return salonCompare;
+        return _getHoraInicioValor(a['HORA'])
+            .compareTo(_getHoraInicioValor(b['HORA']));
+      });
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TabBar(
-            controller: _tabController,
-            tabs: [
-              Tab(text: "Horarios Detallados"),
-              Tab(text: "Asistencias Detalladas"),
-            ],
-            labelColor: Colors.deepOrange,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.deepOrangeAccent,
+          // +++ CAMBIOS MURGO (Contraste) +++
+          Text(
+            "Consulta de Salones por Edificio",
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorsw ? Colors.white : Colors.brown),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildListaConsulta(_horariosDetallados, esHorario: true),
-                _buildListaConsulta(_asistenciasDetalladas, esHorario: false),
-              ],
+          // +++ FIN CAMBIOS MURGO +++
+          SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedEdificioConsulta,
+            hint: Text("Seleccione un Edificio"),
+            // +++ CAMBIOS MURGO (Contraste) +++
+            style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+            // +++ FIN CAMBIOS MURGO +++
+            items: _edificiosConsulta.map((edificio) {
+              return DropdownMenuItem(
+                value: edificio,
+                child: Text(edificio),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedEdificioConsulta = value;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: "Edificio",
+              border: OutlineInputBorder(),
             ),
           ),
+          Divider(height: 30),
+          if (_selectedEdificioConsulta == null)
+            Center(child: Text("Seleccione un edificio para ver horarios."))
+          else if (horariosFiltrados.isEmpty)
+            Center(child: Text("No hay clases registradas en este edificio."))
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: horariosFiltrados.length,
+              itemBuilder: (context, index) {
+                final item = horariosFiltrados[index];
+                return Card(
+                  child: ListTile(
+                    // +++ CAMBIOS MURGO (Contraste) +++
+                    leading: Icon(Icons.meeting_room,
+                        color: colorsw
+                            ? Colors.white70
+                            : Colors.brown.shade700),
+                    // +++ FIN CAMBIOS MURGO +++
+                    title: Text(
+                      "Salón: ${item['SALON']} - ${item['DIA']}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                        "Maestro: ${item['PROFESOR']}\n${item['MATERIA']} (${item['HORA']})"),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );
   }
 
+  // +++ CAMBIOS MURGO +++
+  // (Pestaña 4 - Por Profesor)
+  Widget _buildConsultaPorProfesor() {
+    final List<Map<String, dynamic>> horariosFiltrados;
+    String? selectedProfName;
+
+    if (_selectedProfesorConsulta != null) {
+      final prof = _profesores.firstWhere(
+              (p) => p.nprofesor == _selectedProfesorConsulta,
+          orElse: () => Profesor(nprofesor: '', nombre: '', carrera: ''));
+      selectedProfName = prof.nombre;
+    }
+
+    if (selectedProfName == null) {
+      horariosFiltrados = [];
+    } else {
+      horariosFiltrados = _horariosDetallados
+          .where((h) => h['PROFESOR'] == selectedProfName)
+          .toList();
+
+      horariosFiltrados.sort((a, b) {
+        int diaCompare =
+        _getDiaSemanaValor(a['DIA']).compareTo(_getDiaSemanaValor(b['DIA']));
+        if (diaCompare != 0) return diaCompare;
+        return _getHoraInicioValor(a['HORA'])
+            .compareTo(_getHoraInicioValor(b['HORA']));
+      });
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // +++ CAMBIOS MURGO (Contraste) +++
+          Text(
+            "Consulta de Horario por Profesor",
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorsw ? Colors.white : Colors.brown),
+          ),
+          // +++ FIN CAMBIOS MURGO +++
+          SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedProfesorConsulta,
+            hint: Text("Seleccione un Profesor"),
+            isExpanded: true,
+            // +++ CAMBIOS MURGO (Contraste) +++
+            style: TextStyle(color: colorsw ? Colors.white : Colors.black),
+            // +++ FIN CAMBIOS MURGO +++
+            items: _profesores.map((profesor) {
+              return DropdownMenuItem(
+                value: profesor.nprofesor, // Guardamos el ID
+                child: Text(profesor.nombre, overflow: TextOverflow.ellipsis),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedProfesorConsulta = value;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: "Profesor",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          Divider(height: 30),
+          if (_selectedProfesorConsulta == null)
+            Center(child: Text("Seleccione un profesor para ver su horario."))
+          else if (horariosFiltrados.isEmpty)
+            Center(child: Text("No hay clases registradas para este profesor."))
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: horariosFiltrados.length,
+              itemBuilder: (context, index) {
+                final item = horariosFiltrados[index];
+                return Card(
+                  child: ListTile(
+                    // +++ CAMBIOS MURGO (Contraste) +++
+                    leading: Icon(Icons.school,
+                        color: colorsw
+                            ? Colors.white70
+                            : Colors.brown.shade700),
+                    // +++ FIN CAMBIOS MURGO +++
+                    title: Text(
+                      "${item['DIA']} - ${item['HORA']}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                        "${item['MATERIA']}\n${item['EDIFICIO']} - ${item['SALON']}"),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+  // +++ FIN CAMBIOS MURGO +++
+
+  // +++ CAMBIOS RODOLFO +++
   Widget _buildListaConsulta(List<Map<String, dynamic>> data,
       {required bool esHorario}) {
     if (data.isEmpty) {
@@ -1205,7 +1750,6 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         final item = data[index];
         if (esHorario) {
           return Card(
-            color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
             child: ListTile(
               leading: Icon(Icons.schedule, color: Colors.blue),
               title: Text(item['MATERIA'] ?? 'N/A'),
@@ -1216,7 +1760,6 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
         } else {
           bool asistio = item['ASISTENCIA'] == 1;
           return Card(
-            color: colorsw ? Colors.grey[700] : Colors.orange.shade100,
             child: ListTile(
               leading: Icon(
                 asistio ? Icons.check_circle : Icons.cancel,
@@ -1232,6 +1775,53 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // --- FUNCIONES AUXILIARES (RODOLFO) ---
+
+  // +++ CAMBIOS RODOLFO +++
+  double _timeToDouble(int hour, int minute) => hour + minute / 60.0;
+
+  // +++ CAMBIOS RODOLFO +++
+  int _getDiaSemanaValor(String dia) {
+    int index = _diasSemana.indexOf(dia);
+    return index == -1 ? 99 : index;
+  }
+
+  // +++ CAMBIOS RODOLFO +++
+  double _getHoraInicioValor(String horaRango) {
+    final matches = _horaRegExp.firstMatch(horaRango);
+    if (matches == null) return 99.0;
+    final double horarioInicio =
+    _timeToDouble(int.parse(matches.group(1)!), int.parse(matches.group(2)!));
+    return horarioInicio;
+  }
+
+  // +++ CAMBIOS RODOLFO +++
+  String _getDiaActualString() {
+    final int hoy = DateTime.now().weekday;
+    switch (hoy) {
+      case DateTime.monday:
+        return 'Lunes';
+      case DateTime.tuesday:
+        return 'Martes';
+      case DateTime.wednesday:
+        return 'Miércoles';
+      case DateTime.thursday:
+        return 'Jueves';
+      case DateTime.friday:
+        return 'Viernes';
+      case DateTime.saturday:
+        return 'Sábado';
+      default:
+        return '';
+    }
+  }
+
+  // +++ CAMBIOS RODOLFO +++
+  String _getFechaActualString() {
+    return DateTime.now().toIso8601String().substring(0, 10);
+  }
+
+  // +++ CAMBIOS RODOLFO +++
   Widget _itemDrawer(int indice, IconData icono, String texto) {
     return ListTile(
       onTap: () {
@@ -1239,13 +1829,17 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
           _index = indice;
         });
         _limpiarControladores();
+
         if (indice == 4) {
-          _cargarDatosConsulta();
+          _cargarDatos();
         }
-        if (indice == 2 || indice == 3 || indice == 4) {
+        if (indice == 2 || indice == 3) {
           _cargarProfesores();
           _cargarMaterias();
           _cargarHorarios();
+        }
+        if (indice == 3) {
+          _cargarAsistencias();
         }
         Navigator.pop(context);
       },
@@ -1264,68 +1858,86 @@ class _APP03State extends State<APP03> with SingleTickerProviderStateMixin {
     );
   }
 
+  // --- BUILD (RODOLFO) ---
+  // +++ CAMBIOS RODOLFO +++
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Gestión Escolar"),
-        backgroundColor: !colorsw ? Colors.deepOrange : Colors.grey,
+        // +++ CAMBIOS MURGO +++
+        backgroundColor: colorsw ? Colors.grey[900] : Colors.deepOrange,
+        // +++ FIN CAMBIOS MURGO +++
         centerTitle: true,
       ),
       body: contenido(),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            SizedBox(
-              height: 120,
-              child: Container(
-                color: Colors.deepOrange,
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(left: 16.0, top: 40.0),
-                child: Text(
-                  'Menú',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            _itemDrawer(0, Icons.person, "PROFESORES"),
-            _itemDrawer(1, Icons.book, "MATERIAS"),
-            _itemDrawer(2, Icons.schedule, "HORARIOS"),
-            _itemDrawer(3, Icons.check_box, "ASISTENCIAS"),
-            _itemDrawer(4, Icons.query_stats, "CONSULTAS"),
-            Divider(),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  SizedBox(
+        // +++ CAMBIOS MURGO (Contraste Drawer) +++
+        // El Drawer en sí no tiene color, su hijo es el que tiene el color.
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            // El brightness le dice a los Text/Icons que sean blancos
+            brightness: colorsw ? Brightness.dark : Brightness.light,
+          ),
+          child: Container( // Se añade un Container para forzar el color de fondo
+            color: colorsw ? Colors.grey[850] : Colors.white,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                SizedBox(
+                  height: 120,
+                  child: Container(
+                    color: Colors.deepOrange,
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(left: 16.0, top: 40.0),
                     child: Text(
-                      "Modo obscuro",
-                      style:
-                      TextStyle(fontSize: 18, color: Colors.orangeAccent),
+                      'Menú',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  Switch(
-                    value: colorsw,
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: Colors.grey.shade300,
-                    onChanged: (bool value) {
-                      setState(() {
-                        colorsw = value;
-                      });
-                    },
+                ),
+                SizedBox(height: 20),
+                _itemDrawer(0, Icons.person, "PROFESORES"),
+                _itemDrawer(1, Icons.book, "MATERIAS"),
+                _itemDrawer(2, Icons.schedule, "HORARIOS"),
+                _itemDrawer(3, Icons.check_box, "ASISTENCIAS"),
+                _itemDrawer(4, Icons.query_stats, "CONSULTAS"),
+                Divider(color: colorsw ? Colors.white24 : Colors.black26), // Color de divisor explícito
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        child: Text(
+                          "Modo obscuro",
+                          style: TextStyle(
+                            fontSize: 18,
+                            // El color lo toma del Theme.brightness
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: colorsw,
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.grey.shade300,
+                        onChanged: (bool value) {
+                          setState(() {
+                            colorsw = value;
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+        // +++ FIN CAMBIOS MURGO +++
       ),
     );
   }
