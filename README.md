@@ -1,4 +1,3 @@
-Aquí tienes el README completo del proyecto, uniendo todas las secciones que hemos explicado y respetando la estructura:
 
 ---
 
